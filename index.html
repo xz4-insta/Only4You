@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Only4You 💕</title>
+
+<style>
+html{
+  scroll-behavior:smooth;
+}
+
+body{
+  margin:0;
+  font-family:'Segoe UI',sans-serif;
+  background:linear-gradient(135deg,#FFF6EC,#FFD6E8);
+  overflow-x:hidden;
+  text-align:center;
+}
+
+/* ================= NAVBAR ================= */
+.navbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:15px 30px;
+  background:white;
+  box-shadow:0 5px 15px rgba(0,0,0,0.05);
+  position:sticky;
+  top:0;
+  z-index:1000;
+}
+
+.logo{
+  font-size:1.4rem;
+  font-weight:bold;
+  color:#E75480;
+}
+
+.nav-links{
+  display:flex;
+  gap:20px;
+}
+
+.nav-links a{
+  text-decoration:none;
+  color:#C2185B;
+  font-weight:500;
+  transition:0.3s;
+}
+
+.nav-links a:hover{
+  color:#ff3385;
+}
+
+/* Hamburger */
+.hamburger{
+  display:none;
+  flex-direction:column;
+  cursor:pointer;
+}
+
+.hamburger span{
+  height:3px;
+  width:25px;
+  background:#C2185B;
+  margin:4px 0;
+  transition:0.4s;
+}
+
+.hamburger.active span:nth-child(1){
+  transform:rotate(45deg) translate(5px,5px);
+}
+.hamburger.active span:nth-child(2){
+  opacity:0;
+}
+.hamburger.active span:nth-child(3){
+  transform:rotate(-45deg) translate(6px,-6px);
+}
+
+/* Mobile Menu */
+.mobile-menu{
+  display:none;
+  flex-direction:column;
+  background:white;
+  position:absolute;
+  top:60px;
+  right:20px;
+  padding:20px;
+  border-radius:15px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.1);
+  animation:fadeMenu 0.3s ease;
+}
+
+@keyframes fadeMenu{
+  from{ opacity:0; transform:translateY(-10px); }
+  to{ opacity:1; transform:translateY(0); }
+}
+
+.mobile-menu a{
+  margin:10px 0;
+  text-decoration:none;
+  color:#C2185B;
+}
+
+/* ================= HERO ================= */
+.hero{
+  padding:80px 20px;
+}
+
+.hero h1{
+  font-size:2.5rem;
+  color:#E75480;
+  animation:glow 2s infinite alternate;
+}
+
+@keyframes glow{
+  from{ text-shadow:0 0 5px #ff99cc; }
+  to{ text-shadow:0 0 20px #ff3385; }
+}
+
+.hero p{
+  font-size:1.1rem;
+  color:#7a4b5f;
+  max-width:600px;
+  margin:auto;
+}
+
+.hero button{
+  margin-top:30px;
+  padding:12px 30px;
+  border:none;
+  border-radius:30px;
+  background:#E75480;
+  color:white;
+  cursor:pointer;
+  font-size:1rem;
+  transition:0.3s;
+  animation:pulse 2.5s infinite;
+}
+
+@keyframes pulse{
+  0%{ box-shadow:0 0 0 0 rgba(231,84,128,0.4); }
+  70%{ box-shadow:0 0 0 15px rgba(231,84,128,0); }
+  100%{ box-shadow:0 0 0 0 rgba(231,84,128,0); }
+}
+
+.hero button:hover{
+  transform:scale(1.1);
+}
+
+/* ================= SECTIONS ================= */
+.section{
+  padding:60px 20px;
+}
+
+.templates,
+.pricing,
+.features{
+  display:flex;
+  justify-content:center;
+  gap:30px;
+  flex-wrap:wrap;
+}
+
+.template-card,
+.price-card{
+  width:260px;
+  background:white;
+  padding:25px;
+  border-radius:25px;
+  box-shadow:0 10px 30px rgba(231,84,128,0.15);
+  cursor:pointer;
+  transition:0.3s;
+}
+
+.template-card:hover,
+.price-card:hover{
+  transform:translateY(-8px);
+  box-shadow:0 15px 40px rgba(231,84,128,0.3);
+}
+
+.feature{
+  width:250px;
+}
+
+/* ================= ANIMATIONS ================= */
+.heart{
+  position:fixed;
+  font-size:20px;
+  animation:floatHeart linear infinite;
+}
+
+@keyframes floatHeart{
+  0%{ transform:translateY(0); opacity:1; }
+  100%{ transform:translateY(-100vh); opacity:0; }
+}
+
+.sparkle{
+  position:fixed;
+  font-size:18px;
+  animation:twinkle 2s infinite alternate;
+}
+
+@keyframes twinkle{
+  from{ opacity:0.4; transform:scale(1); }
+  to{ opacity:1; transform:scale(1.3); }
+}
+
+#pinkCat{
+  position:fixed;
+  font-size:40px;
+  z-index:999;
+  pointer-events:none;
+}
+
+/* ================= MOBILE ================= */
+@media(max-width:768px){
+  .nav-links{ display:none; }
+  .hamburger{ display:flex; }
+  .hero h1{ font-size:2rem; }
+  .template-card,
+  .price-card,
+  .feature{ width:90%; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="navbar">
+  <div class="logo">Only4You 💕</div>
+
+  <div class="nav-links">
+    <a href="#templates">Templates</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#features">Features</a>
+    <a href="create.html">Create</a>
+  </div>
+
+  <div class="hamburger" onclick="toggleMenu(this)">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#templates">Templates</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#features">Features</a>
+    <a href="create.html">Create</a>
+  </div>
+</div>
+
+<div class="hero">
+  <h1>Create Magical Love Surprises 💖</h1>
+  <p>Design. Personalize. Surprise. Make their heart melt.</p>
+  <button onclick="goToCreate()">Start Creating 💕</button>
+</div>
+
+<div class="section" id="templates">
+  <h2>Explore Templates ✨</h2>
+  <div class="templates">
+    <div class="template-card" onclick="selectTemplate('pink')">
+      <h3>Pink Fairy 💗</h3>
+      <p>Soft & magical vibes</p>
+    </div>
+    <div class="template-card" onclick="selectTemplate('dark')">
+      <h3>Dark Romance 🖤</h3>
+      <p>Elegant emotional feel</p>
+    </div>
+  </div>
+</div>
+
+<div class="section" id="pricing">
+  <h2>Choose Your Plan 💎</h2>
+  <div class="pricing">
+    <div class="price-card"><h3>₹48</h3><p>Mini Surprise</p></div>
+    <div class="price-card"><h3>₹89</h3><p>Romantic Deluxe</p></div>
+    <div class="price-card"><h3>₹169</h3><p>Premium Love</p></div>
+    <div class="price-card"><h3>₹299</h3><p>Forever Custom</p></div>
+  </div>
+</div>
+
+<div class="section" id="features">
+  <h2>Why Choose Only4You? 💕</h2>
+  <div class="features">
+    <div class="feature"><h4>✨ Beautiful Templates</h4></div>
+    <div class="feature"><h4>🔐 Secure Links</h4></div>
+    <div class="feature"><h4>📱 QR Sharing</h4></div>
+    <div class="feature"><h4>🎵 Premium Effects</h4></div>
+  </div>
+</div>
+
+<div id="pinkCat">🐱</div>
+
+<script>
+function toggleMenu(el){
+  const menu=document.getElementById("mobileMenu");
+  menu.style.display = menu.style.display==="flex" ? "none" : "flex";
+  el.classList.toggle("active");
+}
+
+function goToCreate(){
+  window.location.href="create.html";
+}
+
+function selectTemplate(t){
+  window.location.href="create.html?template="+t;
+}
+
+const cat=document.getElementById("pinkCat");
+function moveCat(){
+  const x=Math.random()*(window.innerWidth-50);
+  const y=Math.random()*(window.innerHeight-50);
+  cat.style.transition="all 2s ease";
+  cat.style.left=x+"px";
+  cat.style.top=y+"px";
+}
+setInterval(moveCat,2000);
+moveCat();
+
+for(let i=0;i<12;i++){
+  const heart=document.createElement("div");
+  heart.className="heart";
+  heart.innerHTML="💖";
+  heart.style.left=Math.random()*100+"%";
+  heart.style.bottom="-20px";
+  heart.style.animationDuration=(6+Math.random()*4)+"s";
+  document.body.appendChild(heart);
+}
+
+for(let i=0;i<20;i++){
+  const spark=document.createElement("div");
+  spark.className="sparkle";
+  spark.innerHTML="✨";
+  spark.style.left=Math.random()*100+"%";
+  spark.style.top=Math.random()*100+"%";
+  document.body.appendChild(spark);
+}
+</script>
+
+</body>
+</html>

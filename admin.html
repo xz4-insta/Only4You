@@ -1,0 +1,131 @@
+<<<<<<< HEAD
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Admin Login 💗</title>
+<style>
+body{
+  font-family:Arial;
+  background:#FFF6EC;
+  text-align:center;
+  padding:60px;
+}
+input{
+  padding:10px;
+  margin:10px;
+  width:250px;
+}
+button{
+  padding:10px 20px;
+  background:#E75480;
+  color:white;
+  border:none;
+  border-radius:20px;
+  cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<h2>Admin Login 💗</h2>
+
+<input id="email" placeholder="Email"><br>
+<input id="password" type="password" placeholder="Password"><br>
+<button onclick="login()">Login</button>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBdp7U014kNZzYB4MD9Sqn7MuuCjLWcdxI",
+  authDomain: "only4you-55c34.firebaseapp.com",
+  projectId: "only4you-55c34",
+  storageBucket: "only4you-55c34.firebasestorage.app",
+  messagingSenderId: "1051434083700",
+  appId: "1:1051434083700:web:95d52d9fc79ccdba983821",
+  measurementId: "G-9TM176MF33"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+window.login = function(){
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  signInWithEmailAndPassword(auth,email,password)
+    .then(()=> window.location.href="dashboard.html")
+    .catch(()=> alert("Login failed 💔"));
+}
+</script>
+
+</body>
+</html>
+=======
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Admin Login 💗</title>
+<style>
+body{
+  font-family:Arial;
+  background:#FFF6EC;
+  text-align:center;
+  padding:60px;
+}
+input{
+  padding:10px;
+  margin:10px;
+  width:250px;
+}
+button{
+  padding:10px 20px;
+  background:#E75480;
+  color:white;
+  border:none;
+  border-radius:20px;
+  cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<h2>Admin Login 💗</h2>
+
+<input id="email" placeholder="Email"><br>
+<input id="password" type="password" placeholder="Password"><br>
+<button onclick="login()">Login</button>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBdp7U014kNZzYB4MD9Sqn7MuuCjLWcdxI",
+  authDomain: "only4you-55c34.firebaseapp.com",
+  projectId: "only4you-55c34",
+  storageBucket: "only4you-55c34.firebasestorage.app",
+  messagingSenderId: "1051434083700",
+  appId: "1:1051434083700:web:95d52d9fc79ccdba983821",
+  measurementId: "G-9TM176MF33"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+window.login = function(){
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  signInWithEmailAndPassword(auth,email,password)
+    .then(()=> window.location.href="dashboard.html")
+    .catch(()=> alert("Login failed 💔"));
+}
+</script>
+
+</body>
+</html>
+>>>>>>> 2a469b46a2bde9af3411a2b36072d9c03711fad4

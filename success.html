@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Only4You 💗</title>
+
+<style>
+body {
+  margin:0;
+  font-family: Arial, sans-serif;
+  overflow-x:hidden;
+  text-align:center;
+}
+
+/* ✨ Effects */
+@keyframes twinkle {
+  from { opacity:0.4; transform:scale(1); }
+  to { opacity:1; transform:scale(1.3); }
+}
+@keyframes fall {
+  to { transform:translateY(110vh) rotate(360deg); }
+}
+@keyframes heartbeat {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.05); }
+  40% { transform: scale(1); }
+  60% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+.star {
+  position:absolute;
+  color:white;
+  font-size:18px;
+  animation:twinkle 2s infinite alternate;
+}
+.petal {
+  position:absolute;
+  top:-20px;
+  font-size:20px;
+}
+.loveMessage {
+  animation: heartbeat 2s infinite;
+}
+</style>
+
+</head>
+<body>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "only4you-55c34.firebaseapp.com",
+  projectId: "only4you-55c34",
+  storageBucket: "only4you-55c34.appspot.com",
+  messagingSenderId: "1051434083700",
+  appId: "1:1051434083700:web:95d52d9fc79ccdba983821"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+document.body.innerHTML = "<h2 style='margin-top:100px;'>Loading your surprise... 💕</h2>";
+
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
+const isOwner = params.get("owner") === "true";
+
+if (!id) {
+  document.body.innerHTML = "<h2>Invalid Surprise Link 💔</h2>";
+  throw new Error("No ID");
+}
+
+try {
+
+const snap = await getDoc(doc(db, "surprises", id));
+
+if (!snap.exists()) {
+  document.body.innerHTML = "<h2>Surprise Not Found 💔</h2>";
+  throw new Error("Not found");
+}
+
+const data = snap.data();
+
+/* Expiry Safe Check */
+if (data.expiresAt && Date.now() > data.expiresAt) {
+  document.body.innerHTML = "<h2>This Surprise Has Expired 💔</h2>";
+  throw new Error("Expired");
+}
+
+/* Increment Views */
+await updateDoc(doc(db, "surprises", id), {
+  views: (data.views || 0) + 1
+});
+
+/* Template Validation */
+const allowedTemplates = ["pink","dark"];
+if (!allowedTemplates.includes(data.template)) {
+  throw new Error("Invalid template");
+}
+
+/* Fetch Template */
+const response = await fetch("templates/" + data.template + ".html");
+if (!response.ok) throw new Error("Template load failed");
+
+const templateHTML = await response.text();
+
+/* Replace Placeholders */
+const finalHTML = templateHTML
+  .replaceAll("{{receiver}}", data.receiver || "")
+  .replaceAll("{{message}}", data.message || "")
+  .replaceAll("{{sender}}", data.sender || "");
+
+document.body.innerHTML = "";
+
+const container = document.createElement("div");
+container.innerHTML = finalHTML;
+document.body.appendChild(container);
+
+/* Fade In */
+container.style.opacity = "0";
+container.style.transition = "opacity 1s ease";
+setTimeout(() => { container.style.opacity = "1"; }, 100);
+
+/* 💖 Heartbeat Apply */
+const msgElement = container.querySelector(".message");
+if (msgElement) msgElement.classList.add("loveMessage");
+
+/* 🎵 Romantic Music */
+const audio = document.createElement("audio");
+audio.src = "music/romantic.mp3";
+audio.loop = true;
+audio.volume = 0.3;
+audio.style.display = "none";
+document.body.appendChild(audio);
+
+document.addEventListener("click", () => {
+  audio.play().catch(()=>{});
+}, { once:true });
+
+/* ✨ Fairy Stars */
+for(let i=0;i<25;i++){
+  const star=document.createElement("div");
+  star.className="star";
+  star.innerHTML="✨";
+  star.style.left=Math.random()*100+"%";
+  star.style.top=Math.random()*100+"%";
+  document.body.appendChild(star);
+}
+
+/* 🌸 Petals */
+for(let i=0;i<15;i++){
+  const petal=document.createElement("div");
+  petal.className="petal";
+  petal.innerHTML="🌸";
+  petal.style.left=Math.random()*100+"%";
+  petal.style.animation=`fall ${5+Math.random()*5}s linear infinite`;
+  document.body.appendChild(petal);
+}
+
+/* 💬 Reaction Section */
+const reactionSection = document.createElement("div");
+reactionSection.style.marginTop="40px";
+
+reactionSection.innerHTML = `
+<button id="reactBtn"
+style="padding:12px 25px;
+font-size:18px;
+border:none;
+border-radius:30px;
+background:#ff4d6d;
+color:white;
+cursor:pointer;">
+❤️ Send Love
+</button>
+
+<p id="reactionCount" style="margin-top:10px;">
+${data.reactions || 0} Loves
+</p>
+`;
+
+document.body.appendChild(reactionSection);
+
+document.getElementById("reactBtn").onclick = async () => {
+  const newCount = (data.reactions || 0) + 1;
+
+  await updateDoc(doc(db, "surprises", id), {
+    reactions: newCount
+  });
+
+  document.getElementById("reactionCount").innerText =
+    newCount + " Loves";
+
+  document.getElementById("reactBtn").innerText = "💖 Sent!";
+  document.getElementById("reactBtn").disabled = true;
+};
+
+/* 💕 OWNER MODE */
+if (isOwner) {
+
+  const shareSection = document.createElement("div");
+  shareSection.style.marginTop = "60px";
+  shareSection.style.padding = "30px";
+  shareSection.style.background = "rgba(255,255,255,0.2)";
+  shareSection.style.backdropFilter = "blur(15px)";
+  shareSection.style.borderRadius = "25px";
+  shareSection.style.maxWidth = "450px";
+  shareSection.style.marginInline = "auto";
+
+  const cleanLink = window.location.origin +
+                    window.location.pathname +
+                    "?id=" + id;
+
+  shareSection.innerHTML = `
+  <h3>Share This Surprise 💕</h3>
+  <p style="word-break:break-all;font-size:14px;">
+  ${cleanLink}
+  </p>
+  <p style="font-size:13px;">
+  Opened ${data.views || 0} times
+  </p>
+  <button id="copyBtn"
+  style="margin-top:15px;
+  padding:10px 20px;
+  border:none;
+  border-radius:20px;
+  background:#ff69b4;
+  color:white;
+  cursor:pointer;">
+  Copy Link
+  </button>
+  <div id="qrcode" style="margin-top:25px;"></div>
+  `;
+
+  document.body.appendChild(shareSection);
+
+  document.getElementById("copyBtn").onclick = () => {
+    navigator.clipboard.writeText(cleanLink);
+    const btn = document.getElementById("copyBtn");
+    btn.innerText = "Copied 💖";
+    btn.style.background = "#32CD32";
+    setTimeout(()=>{
+      btn.innerText="Copy Link";
+      btn.style.background="#ff69b4";
+    },2000);
+  };
+
+  const qrScript=document.createElement("script");
+  qrScript.src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js";
+  document.head.appendChild(qrScript);
+
+  qrScript.onload=()=>{
+    new QRCode(document.getElementById("qrcode"),{
+      text:cleanLink,
+      width:120,
+      height:120
+    });
+  };
+}
+
+} catch(err){
+  console.error(err);
+  document.body.innerHTML="<h2>Something went wrong 💔</h2>";
+}
+
+</script>
+</body>
+</html>
