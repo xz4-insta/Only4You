@@ -153,6 +153,7 @@
     margin-bottom: 25px;
     background: linear-gradient(90deg, #ff85a1, #ffeaef);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 
@@ -243,6 +244,45 @@
   #toast.show {
     bottom: 30px;
   }
+
+  .reaction-stats {
+    background: rgba(255, 77, 136, 0.1);
+    border: 1px solid rgba(255, 77, 136, 0.3);
+    padding: 10px 20px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    margin: 15px 0;
+    color: #ff85a1;
+    animation: pulseGlow 2s infinite alternate;
+  }
+  
+  @keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 150%; }
+  }
+
+  .shimmer-effect {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(
+      120deg, 
+      transparent, 
+      rgba(255, 255, 255, 0.25), 
+      rgba(255, 255, 255, 0.45), 
+      rgba(255, 255, 255, 0.25), 
+      transparent
+    );
+    animation: shimmer 4s infinite linear;
+    pointer-events: none;
+    z-index: 5;
+    transform: skewX(-20deg);
+  }
 </style>
 </head>
 
@@ -253,8 +293,8 @@
 
 
 <div class="card-container">
-  <div class="card" id="tiltCard" data-tilt data-tilt-glare data-tilt-max-glare="0.2" data-tilt-max="10" data-tilt-speed="400" data-tilt-perspective="1000">
-    
+  <div class="card" id="tiltCard" data-tilt data-tilt-max="10" data-tilt-speed="400" data-tilt-perspective="1000">
+    <div class="shimmer-effect"></div>
     <div class="scene" id="renderScene">
       <!-- Reference image -->
       <img src="assets/basket.jpg" crossorigin="anonymous" id="baseImg" alt="Surprise Basket">
@@ -267,6 +307,12 @@
 
     <h2>Your Surprise is Ready 💕</h2>
     <div class="scan">✨ Scan to reveal the magic 💖</div>
+
+    <div class="reaction-stats" id="reactionStats" style="display:none;">
+      <span style="font-size:1.2rem;">❤️</span> 
+      <span id="reactionCount">0</span> 
+      <span>Loves Received</span>
+    </div>
 
     <div class="actions">
       <button class="btn btn-copy" id="copyQR">
@@ -290,11 +336,39 @@
 
 <div id="toast">Message copied!</div>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBdp7U014kNZzYB4MD9Sqn7MuuCjLWcdxI",
+  authDomain: "only4you-55c34.firebaseapp.com",
+  projectId: "only4you-55c34",
+  storageBucket: "only4you-55c34.appspot.com",
+  messagingSenderId: "1051434083700",
+  appId: "1:1051434083700:web:95d52d9fc79ccdba983821"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
 window.addEventListener('DOMContentLoaded', () => {
 
   const params = new URLSearchParams(window.location.search);
   const id = params.get("id");
+
+  if (id) {
+    const ref = doc(db, "surprises", id);
+    onSnapshot(ref, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        const count = data.reactions || 0;
+        document.getElementById("reactionCount").innerText = count;
+        document.getElementById("reactionStats").style.display = "flex";
+      }
+    });
+  }
+
   let currentLink = id ? `${window.location.origin}/success.html?id=${id}` : "https://example.com";
   let qrInstance;
 
@@ -302,8 +376,7 @@ window.addEventListener('DOMContentLoaded', () => {
   VanillaTilt.init(document.querySelector(".card"), {
     max: 12,
     speed: 400,
-    glare: true,
-    "max-glare": 0.25,
+    glare: false,
     perspective: 1000
   });
 
@@ -400,7 +473,10 @@ window.addEventListener('DOMContentLoaded', () => {
       showToast("Preparing to share... ⏳");
       const element = document.querySelector(".card");
       
-      // We temporarily remove tilt bounds for a perfect screenshot
+      // We temporarily remove tilt and shimmer for a perfect screenshot
+      const shimmer = element.querySelector(".shimmer-effect");
+      if(shimmer) shimmer.style.display = "none";
+      
       element.vanillaTilt.destroy();
       element.style.transform = "none";
       
@@ -409,6 +485,8 @@ window.addEventListener('DOMContentLoaded', () => {
         useCORS: true,
         backgroundColor: null
       });
+
+      if(shimmer) shimmer.style.display = "block";
 
       // Re-init tilt
       VanillaTilt.init(element, {

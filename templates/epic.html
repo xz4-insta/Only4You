@@ -50,6 +50,33 @@ max-width:420px;
 width:100%;
 text-align:center;
 animation:fadeUp .6s ease;
+position:relative;
+overflow:hidden;
+}
+
+@keyframes shimmer {
+  0% { left: -150%; }
+  100% { left: 150%; }
+}
+
+.shimmer-effect {
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    120deg, 
+    transparent 30%, 
+    rgba(255, 255, 255, 0.05) 45%, 
+    rgba(255, 255, 255, 0.2) 50%, 
+    rgba(255, 255, 255, 0.05) 55%, 
+    transparent 70%
+  );
+  animation: shimmer 6s infinite;
+  pointer-events: none;
+  z-index: 10;
+  transform: skewX(-20deg);
 }
 
 @keyframes fadeUp{
@@ -307,6 +334,7 @@ transform:scale(2);
 
 <div class="stage active" id="stage1">
 <div class="card">
+    <div class="shimmer-effect"></div>
 
 <h2>💌 Tap to Open</h2>
 
@@ -379,6 +407,8 @@ margin-top:20px;
 
 <div id="voiceContainer" class="voice-container"></div>
 
+<div id="reactionTarget" style="margin:20px 0;"></div>
+
 <button onclick="nextStage()">Continue 💖</button>
 
 </div>
@@ -386,6 +416,7 @@ margin-top:20px;
 
 <div class="stage" id="stage6">
 <div class="card">
+    <div class="shimmer-effect"></div>
 
 <h2 id="finalQuestion"></h2>
 
@@ -398,46 +429,5 @@ margin-top:20px;
 </div>
 
 <div class="progress-dots" id="progressDots"></div>
-<script type="module">
-import { initEpicInteractions } from "./stageEngine.js";
-
-document.addEventListener("DOMContentLoaded",()=>{
-
-const saved = JSON.parse(localStorage.getItem("only4you_story")) || {};
-
-initEpicInteractions({
-
-message:"You changed my life ❤️",
-
-images: saved.images || [],
-
-voices: saved.voices || [],
-
-finalQuestion:"Will you marry me? 💍"
-
-})
-
-})
-</script>
-<script>
-
-document.addEventListener("DOMContentLoaded",()=>{
-
-initEpicInteractions({
-message:"You changed my life ❤️",
-images:[
-"/uploads/img1.jpg",
-"/uploads/img2.jpg"
-],
-voices:[
-"/uploads/voice1.mp3",
-"/uploads/voice2.mp3"
-],
-finalQuestion:"Will you marry me? 💍"
-})
-
-})
-
-</script>
 </body>
 </html>

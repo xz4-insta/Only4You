@@ -340,13 +340,21 @@ button:hover {
 .shimmer-effect {
   position: absolute;
   top: 0;
-  left: -100%;
-  width: 50%;
+  left: -150%;
+  width: 100%;
   height: 100%;
-  background: linear-gradient(120deg, transparent, rgba(255,255,255,0.4), transparent);
-  animation: shimmer 4s infinite;
+  background: linear-gradient(
+    120deg, 
+    transparent 30%, 
+    rgba(255, 255, 255, 0.05) 45%, 
+    rgba(255, 255, 255, 0.2) 50%, 
+    rgba(255, 255, 255, 0.05) 55%, 
+    transparent 70%
+  );
+  animation: shimmer 6s infinite;
   pointer-events: none;
   z-index: 10;
+  transform: skewX(-20deg);
 }
 </style>
 </head>
@@ -404,6 +412,7 @@ button:hover {
     <h2>Hear My Heart 🎧</h2>
     <p style="opacity:.9; font-size:14px;">Tap to listen to special voice messages</p>
     <div id="voiceContainer" class="voice-container"></div>
+    <div id="reactionTarget" style="margin:20px 0;"></div>
     <button onclick="nextStage()" style="width:100%;">Continue 💖</button>
   </div>
 </div>

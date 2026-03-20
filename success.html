@@ -153,6 +153,7 @@ font-size:22px;
 font-weight:600;
 background:linear-gradient(90deg,gold,#fff5c3);
 -webkit-background-clip:text;
+background-clip:text;
 -webkit-text-fill-color:transparent;
 }
 
@@ -322,7 +323,12 @@ background:#ff4d6d;color:white;font-size:18px;cursor:pointer;">
 <p id="reactionCount">${data.reactions||0} Loves</p>
 `;
 
-wrapper.appendChild(reactSection);
+const reactionTarget = document.getElementById("reactionTarget");
+if(reactionTarget){
+  reactionTarget.appendChild(reactSection);
+} else {
+  wrapper.appendChild(reactSection);
+}
 
 document.getElementById("reactBtn").onclick=async()=>{
 

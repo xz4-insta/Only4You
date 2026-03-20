@@ -18,10 +18,22 @@ const stageFlow = {
 "48":[1,6],
 "89":[1,2,3,6],
 "169":[1,2,3,4,6],
-"299":[1,2,3,4,5,6]
+"299":[1,2,3,4,6]
 }
 
-window.allowedStages = stageFlow[plan] || [1,6]
+// Bypassing Lock for Creator/Admin session
+const raw = localStorage.getItem("_u4y_preview_lock");
+let isCreator = false;
+try {
+  const session = JSON.parse(raw);
+  if(session && session.active && session.expiry > Date.now()) isCreator = true;
+} catch(e){}
+
+if(isCreator) {
+  window.allowedStages = [1,2,3,4,6];
+} else {
+  window.allowedStages = stageFlow[plan] || [1,6];
+}
 
 }
 
@@ -166,6 +178,89 @@ animation:fadeIn .6s ease;
 from{opacity:0;transform:translateY(20px)}
 to{opacity:1;transform:translateY(0)}
 }
+
+/* ADVANCED VOICE PLAYER */
+.voice-player {
+  background: rgba(255, 255, 255, 0.08); 
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 12px 15px;
+  margin: 10px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  backdrop-filter: blur(10px);
+  text-align: left;
+}
+.player-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.play-btn {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  border-radius: 50%;
+  border: none;
+  background: #ff4d6d;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, background 0.2s;
+  box-shadow: 0 5px 15px rgba(255, 77, 109, 0.3);
+  font-size: 16px;
+  padding: 0;
+}
+.play-btn:hover { transform: scale(1.1); background: #ff758f; }
+.play-btn svg { width: 16px; height: 16px; fill: currentColor; }
+
+.voice-info {
+  flex-grow: 1;
+  overflow: hidden;
+}
+.voice-title { 
+  font-weight: 600; 
+  font-size: 0.9rem; 
+  display: block; 
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis;
+  color: white;
+}
+.voice-time { 
+  font-size: 0.75rem; 
+  opacity: 0.8; 
+  font-family: monospace; 
+  color: #fff;
+}
+
+.seek-wrapper { 
+  width: 100%; 
+  display: flex; 
+  align-items: center; 
+  gap: 10px;
+}
+.seek-bar {
+  flex-grow: 1;
+  cursor: pointer;
+  height: 5px;
+  border-radius: 10px;
+  accent-color: #ff4d6d;
+  -webkit-appearance: none;
+  background: rgba(255,255,255,0.2);
+}
+.seek-bar::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 5px rgba(0,0,0,0.3);
+}
+
 `
 
 document.head.appendChild(style)
@@ -462,34 +557,87 @@ img.style.opacity="1"
 }
 
 function initVoices(data){
+  if(!data.voices || !data.voices.length) return;
 
-if(!data.voices || !data.voices.length) return
+  const container = document.getElementById("voiceContainer");
+  if(!container) return;
 
-const container = document.getElementById("voiceContainer")
-if(!container) return
+  container.innerHTML = "";
 
-container.innerHTML = ""
+  data.voices.forEach((voiceUrl, i) => {
+    const player = document.createElement("div");
+    player.className = "voice-player";
 
-data.voices.forEach((voice,i)=>{
+    const audio = new Audio(voiceUrl);
 
-const btn = document.createElement("button")
-btn.className = "voiceBtn"
-btn.innerText = "▶ Play Voice " + (i+1)
+    player.innerHTML = `
+      <div class="player-top">
+        <button class="play-btn" id="play-${i}">
+          <span class="icon">▶</span>
+        </button>
+        <div class="voice-info">
+          <span class="voice-title">Voice Message ${i + 1}</span>
+          <span class="voice-time" id="time-${i}">0:00 / 0:00</span>
+        </div>
+      </div>
+      <div class="seek-wrapper">
+        <input type="range" class="seek-bar" id="seek-${i}" value="0" min="0" max="100">
+      </div>
+    `;
 
-btn.onclick = function(){
+    const playBtn = player.querySelector(".play-btn");
+    const icon = playBtn.querySelector(".icon");
+    const seekBar = player.querySelector(".seek-bar");
+    const timeDisplay = player.querySelector(".voice-time");
 
-const audio = new Audio(voice)
-audio.play()
+    function formatTime(s) {
+      if (!s || isNaN(s)) return "0:00";
+      const m = Math.floor(s / 60);
+      const ss = Math.floor(s % 60);
+      return `${m}:${ss.toString().padStart(2, '0')}`;
+    }
 
-spawnHearts()
+    playBtn.onclick = () => {
+      const allIcons = container.querySelectorAll(".icon");
+      const isPaused = audio.paused;
 
+      // Pause all and reset all icons
+      container.querySelectorAll('audio').forEach(a => a.pause());
+      allIcons.forEach(i => i.innerText = "▶");
+
+      if (isPaused) {
+        audio.play();
+        icon.innerText = "⏸";
+        spawnHearts();
+      } else {
+        audio.pause();
+        icon.innerText = "▶";
+      }
+    };
+
+    audio.onloadedmetadata = () => {
+      timeDisplay.innerText = `0:00 / ${formatTime(audio.duration)}`;
+      seekBar.max = Math.floor(audio.duration);
+    };
+
+    audio.ontimeupdate = () => {
+      seekBar.value = Math.floor(audio.currentTime);
+      timeDisplay.innerText = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
+    };
+
+    audio.onended = () => {
+      icon.innerText = "▶";
+      seekBar.value = 0;
+    };
+
+    seekBar.oninput = () => {
+      audio.currentTime = seekBar.value;
+    };
+
+    container.appendChild(player);
+  });
 }
 
-container.appendChild(btn)
-
-})
-
-}
 /* =========================================
 PROPOSAL GAME
 ========================================= */

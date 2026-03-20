@@ -68,6 +68,32 @@ body {
   transform-style: preserve-3d;
   transition: transform 0.3s ease;
   border: 4px solid #fff;
+  overflow: hidden;
+}
+
+@keyframes shimmer {
+  0% { left: -150%; }
+  100% { left: 150%; }
+}
+
+.shimmer-effect {
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    120deg, 
+    transparent 30%, 
+    rgba(255, 255, 255, 0.05) 45%, 
+    rgba(255, 255, 255, 0.2) 50%, 
+    rgba(255, 255, 255, 0.05) 55%, 
+    transparent 70%
+  );
+  animation: shimmer 6s infinite;
+  pointer-events: none;
+  z-index: 10;
+  transform: skewX(-20deg);
 }
 
 @keyframes bounceIn {
@@ -347,6 +373,7 @@ button:hover {
 <!-- STAGE 2 -->
 <div class="stage" id="stage2">
   <div class="card">
+    <div class="shimmer-effect"></div>
     <h2>Are You <br><b>Ready?!</b></h2>
     <p style="opacity:.8; font-size:16px; margin-bottom:30px;">Tap fast to build hype! 🎈</p>
     <div class="loveLevelTag" id="loveLevelTag">GETTING READY 🎈</div>
@@ -363,6 +390,7 @@ button:hover {
 <!-- STAGE 3 MEMORIES -->
 <div class="stage" id="stage3">
   <div class="card">
+    <div class="shimmer-effect"></div>
     <h2>Fun <br><b>Memories</b> 📸</h2>
     <div id="tvScreen" style="width:100%; height:200px; overflow:hidden; border-radius:15px; background:#eee; margin-top:20px; border:3px solid #fff;"></div>
     <div style="margin-top:25px; display:flex; gap:15px; justify-content:center;">
@@ -376,9 +404,11 @@ button:hover {
 <!-- STAGE 4 VOICE MEMORIES -->
 <div class="stage" id="stage4">
   <div class="card">
+    <div class="shimmer-effect"></div>
     <h2>Secret <br><b>Wishes</b> 🎤</h2>
     <p style="opacity:.8; font-size:16px;">Listen to your special messages!</p>
     <div id="voiceContainer" class="voice-container"></div>
+    <div id="reactionTarget" style="margin:20px 0;"></div>
     <button onclick="nextStage()" style="width:100%;">Continue 🎉</button>
   </div>
 </div>
