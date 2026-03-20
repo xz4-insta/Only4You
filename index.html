@@ -1,3 +1,5 @@
+/* eslint-disable camelcase */
+/* eslint-disable max-len */
 <!DOCTYPE html>
 <html>
 <head>
@@ -451,24 +453,40 @@ body{
 
 <div id="pinkCat">🐱</div>
 
-<script>
-function goEpic(){
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBdp7U014kNZzYB4MD9Sqn7MuuCjLWcdxI",
+  authDomain: "only4you-55c34.firebaseapp.com",
+  projectId: "only4you-55c34",
+  storageBucket: "only4you-55c34.appspot.com",
+  messagingSenderId: "1051434083700",
+  appId: "1:1051434083700:web:95d52d9fc79ccdba983821"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+signInAnonymously(auth).catch(e => console.error("Auth failed:", e));
+
+window.goEpic = function(){
   window.location.href="create.html?template=epic";
 }
-function toggleMenu(el){
+window.toggleMenu = function(el){
   const menu=document.getElementById("mobileMenu");
   menu.style.display = menu.style.display==="flex" ? "none" : "flex";
   el.classList.toggle("active");
 }
 
-function goToCreate(){
+window.goToCreate = function(){
   window.location.href="create.html";
 }
 
-function selectTemplate(t){
+window.selectTemplate = function(t){
   window.location.href="create.html?template="+t;
 }
-function selectEpicTemplate(){
+window.selectEpicTemplate = function(){
 
   // If user previously selected a plan, keep it
   const urlParams = new URLSearchParams(window.location.search);
@@ -578,19 +596,49 @@ if(items.length > 0) {
 }
 
 let tapCount = 0;
+let lastTapTime = 0;
+let tapSequence = 0; // 0: initial, 1: gap detected
 
-document.querySelector(".logo").addEventListener("click", () => {
-
-  tapCount++;
-
-  if (tapCount === 10) {
-    window.location.href = "admin.html";
+document.querySelector(".logo").addEventListener("click", async () => {
+  const now = Date.now();
+  
+  // Reset if too long between taps (5s)
+  if (now - lastTapTime > 5000) {
+    tapCount = 0;
+    tapSequence = 0;
   }
 
-  setTimeout(() => {
-    tapCount = 0;
-  }, 2000);
+  tapCount++;
+  lastTapTime = now;
 
+  // First check: did we reach the middle gap?
+  if (tapCount === 5 && tapSequence === 0) {
+    // We hit 5 taps. Now user MUST wait between 1.2s and 3s for the next tap to continue.
+    setTimeout(() => {
+       if (tapCount === 5) tapSequence = 1; // Gap confirmed
+    }, 1200);
+  }
+
+  // Final check: did we hit 10 taps total with a gap after the 5th?
+  if (tapCount === 10 && tapSequence === 1) {
+    tapCount = 0; 
+    tapSequence = 0;
+
+    const code = prompt("Enter Creator Access Code ✨");
+    if(!code) return;
+    
+    const msgUint8 = new TextEncoder().encode(code.toUpperCase());
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+    const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+    if(hashHex === "985ce7a08b6ce39600e12dcf6f17e3f605a9c9f4d34c1b9201f19630327f12e8"){
+       const sessionData = { active: true, expiry: Date.now() + (3600 * 1000) };
+       localStorage.setItem("_u4y_preview_lock", JSON.stringify(sessionData));
+       alert("Creator Preview Mode Activated! ✨ Enjoy building your surprises.");
+    } else {
+       window.location.href = "admin.html";
+    }
+  }
 });
 </script>
 

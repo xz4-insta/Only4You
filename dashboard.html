@@ -150,6 +150,7 @@ if(!user || user.uid !== ADMIN_UID){
 }
 
 document.getElementById("logoutBtn").onclick=()=>{
+  localStorage.removeItem("_u4y_preview_lock");
   signOut(auth).then(()=>location.href="admin.html");
 };
 

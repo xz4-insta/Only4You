@@ -116,6 +116,7 @@ h2{
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -128,54 +129,18 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+signInAnonymously(auth).catch(e => console.error("Auth failed:", e));
 const db = getFirestore(app);
+
+const ADMIN_UID = "Uwtpy28RdRXyOoKbU08485YmjIn2";
 
 const params = new URLSearchParams(window.location.search);
 const isPaid = params.get("paid");
 
-// ================= AFTER PAYMENT =================
-if (isPaid === "true") {
+// ================= AFTER PAYMENT LOGIC REMOVED FROM CLIENT =================
+// The document is now created securely by the Cloud Function after verification.
 
-  const stored = JSON.parse(localStorage.getItem("surpriseData"));
-
-  if (!stored) {
-    document.body.innerHTML = "<h2>Session expired. Please try again.</h2>";
-    throw new Error("No stored data");
-  }
-
-  try {
-
-    let expiryTime = null;
-
-    if(stored.plan === "48" || stored.plan === "89"){
-      expiryTime = Date.now() + 24 * 60 * 60 * 1000;
-    }
-
-    if(stored.plan === "169"){
-      expiryTime = Date.now() + 3 * 24 * 60 * 60 * 1000;
-    }
-
-    const docRef = await addDoc(collection(db, "surprises"), {
-      sender: stored.sender,
-      receiver: stored.receiver,
-      message: stored.message,
-      template: stored.template,
-      plan: stored.plan,
-      finalQuestion: stored.finalQuestion || "",
-      images: stored.images || [],
-      voices: stored.voice ? [stored.voice] : [],
-      createdAt: Date.now(),
-      expiresAt: expiryTime,
-      views: 0,
-      reactions: 0
-    });
-localStorage.removeItem("only4you_story");
-   window.location.href = "share.html?id=" + docRef.id;
-  } catch(err) {
-    console.error(err);
-  }
-
-}
 
 
 // ================= BEFORE PAYMENT =================
@@ -225,38 +190,126 @@ document.getElementById("planInfo").innerText = "Selected Plan: " + planText;
 
 // ================= DYNAMIC RAZORPAY =================
 
-document.getElementById("payBtn").onclick = function(){
+// ================= ADMIN BYPASS =================
+
+onAuthStateChanged(auth, (user) => {
+  
+  function checkCreatorAccess() {
+    const raw = localStorage.getItem("_u4y_preview_lock");
+    if(!raw) return false;
+    try {
+      const data = JSON.parse(raw);
+      return data.active && data.expiry > Date.now();
+    } catch(e) { return false; }
+  }
+
+  const isAdmin = checkCreatorAccess();
+
+  if ((user && user.uid === ADMIN_UID) || isAdmin) {
+    const payBtn = document.getElementById("payBtn");
+    payBtn.innerText = "✨ Creator: Direct Generate (Free)";
+    payBtn.style.background = "#FFD700";
+    payBtn.style.color = "#000";
+    payBtn.onclick = async function() {
+      const overlay = document.getElementById("overlay");
+      overlay.style.display = "flex";
+      
+      const surpriseData = JSON.parse(localStorage.getItem("surpriseData"));
+      const passcodeHash = "985ce7a08b6ce39600e12dcf6f17e3f605a9c9f4d34c1b9201f19630327f12e8";
+
+      try {
+        const response = await fetch("http://localhost:3000/verify-and-create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...surpriseData, passcodeHash, uid: user?.uid })
+        });
+        const result = await response.json();
+        if (result.success) {
+           localStorage.removeItem("only4you_story");
+           window.location.href = "share.html?id=" + result.id;
+        } else {
+           alert("Bypass failed: " + result.error);
+           overlay.style.display = "none";
+        }
+      } catch (e) {
+        console.error(e);
+        overlay.style.display = "none";
+      }
+    };
+  }
+});
+
+document.getElementById("payBtn").onclick = async function(){
 
   const overlay = document.getElementById("overlay");
   const payBtn = document.getElementById("payBtn");
+  const originalText = payBtn.innerText;
+  
   payBtn.disabled = true;
+  payBtn.innerText = "Processing... ⏳";
 
-  const amountMap = {
-    "48": 4800,
-    "89": 8900,
-    "169": 16900,
-    "299": 29900
-  };
+  try {
+    // 1. Create Order on Server
+    const orderResponse = await fetch("http://localhost:3000/create-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan: plan })
+    });
+    const orderData = await orderResponse.json();
 
-  var options = {
-    key: "rzp_test_SHVFTNzBwF1sz0",
-    amount: amountMap[plan],
-    currency: "INR",
-    name: "Only4You 💕",
-    description: "Romantic Surprise",
-    handler: function () {
-      overlay.style.display = "flex";
-      setTimeout(() => {
-      window.location.href = "preview.html?paid=true";
-      }, 1500);
-    },
-    theme: {
-      color: "#E75480"
-    }
-  };
+    var options = {
+      key: "rzp_live_STM1YCZMjmq7c0",
+      amount: orderData.amount,
+      currency: "INR",
+      name: "Only4You 💕",
+      description: "Love Surprise - " + planText,
+      order_id: orderData.id,
+      handler: async function (response) {
+        overlay.style.display = "flex";
+        
+        // 2. Verify Payment & Create Surprise on Server
+        const surpriseData = JSON.parse(localStorage.getItem("surpriseData"));
+        const verifyResponse = await fetch("http://localhost:3000/verify-and-create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+             ...surpriseData,
+             razorpay_payment_id: response.razorpay_payment_id,
+             razorpay_order_id: response.razorpay_order_id,
+             razorpay_signature: response.razorpay_signature,
+             uid: auth.currentUser?.uid
+          })
+        });
 
-  var rzp = new Razorpay(options);
-  rzp.open();
+        const result = await verifyResponse.json();
+        if (result.success) {
+          localStorage.removeItem("only4you_story");
+          window.location.href = "share.html?id=" + result.id;
+        } else {
+          alert("Payment Verification Failed! ❌ Please contact support.");
+          overlay.style.display = "none";
+          payBtn.disabled = false;
+          payBtn.innerText = originalText;
+        }
+      },
+      theme: { color: "#E75480" }
+    };
+
+    var rzp = new Razorpay(options);
+    rzp.open();
+    
+    rzp.on('payment.failed', function (response){
+        alert("Payment Failed! ❌ " + response.error.description);
+        payBtn.disabled = false;
+        payBtn.innerText = originalText;
+    });
+
+  } catch (e) {
+    console.error(e);
+    alert("Connection Error. Please try again.");
+    payBtn.disabled = false;
+    payBtn.innerText = originalText;
+  }
 };
   
 

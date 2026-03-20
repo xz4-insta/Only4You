@@ -265,10 +265,58 @@ input[type="radio"]{
 
 <div id="pinkCat">🐱</div>
 
-<script>
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBdp7U014kNZzYB4MD9Sqn7MuuCjLWcdxI",
+  authDomain: "only4you-55c34.firebaseapp.com",
+  projectId: "only4you-55c34",
+  storageBucket: "only4you-55c34.appspot.com",
+  messagingSenderId: "1051434083700",
+  appId: "1:1051434083700:web:95d52d9fc79ccdba983821"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+signInAnonymously(auth).catch(e => console.error("Auth failed:", e));
+
+const ADMIN_UID = "Uwtpy28RdRXyOoKbU08485YmjIn2";
+
+// Hardened Check Logic
+function checkCreatorAccess() {
+  const raw = localStorage.getItem("_u4y_preview_lock");
+  if(!raw) return false;
+  try {
+    const data = JSON.parse(raw);
+    if(data.active && data.expiry > Date.now()) return true;
+    localStorage.removeItem("_u4y_preview_lock"); // Clean up expired
+    return false;
+  } catch(e) { return false; }
+}
+
+let isAdmin = checkCreatorAccess();
+
+onAuthStateChanged(auth, (user) => {
+  if ((user && user.uid === ADMIN_UID) || isAdmin) {
+    isAdmin = true;
+    window.applyStageLock();
+    const btn = document.getElementById("previewBtn");
+    if(btn) btn.innerText = "✨ Creator: Preview and Generate";
+  }
+});
+
+if(isAdmin) {
+    window.applyStageLock();
+    const btn = document.getElementById("previewBtn");
+    if(btn) btn.innerText = "✨ Creator: Preview and Generate";
+}
+
 /* ===== PREVIEW FUNCTION ===== */
 
-function goToPreview(){
+window.goToPreview = function(){
 
   const sender = document.getElementById("sender").value;
   const receiver = document.getElementById("receiver").value;
@@ -299,7 +347,7 @@ function goToPreview(){
     "&plan=" + plan +
     "&finalQuestion=" + encodeURIComponent(finalQuestion);
 
-}
+};
 
 document.getElementById("template").addEventListener("change", (e) => {
   const fq = document.getElementById("finalQuestion");
@@ -317,11 +365,11 @@ document.getElementById("template").addEventListener("change", (e) => {
 });
 /* ===== PLAN SELECT ===== */
 
-function selectPlan(element){
+window.selectPlan = function(element){
   document.querySelectorAll(".plan-box").forEach(box=>box.classList.remove("selected"));
   element.classList.add("selected");
   element.querySelector("input").checked = true;
-  applyStageLock();
+  window.applyStageLock();
 }
 
 /* ===== LOCK SYSTEM ===== */
@@ -365,33 +413,43 @@ window.autoUpgrade = function(price){
   }
 };
 
-function applyStageLock(){
-
-  const plan = document.querySelector('input[name="plan"]:checked').value;
+window.applyStageLock = function(){
+  
+  const planElem = document.querySelector('input[name="plan"]:checked');
+  if(!planElem) return;
+  const plan = planElem.value;
 
   hide(imageSection);
   hide(voiceSection);
   hide(questionSection);
   hide(quizSection);
 
-  if(plan === "48"){
-  show(questionSection);   // allow final question
-  addLock(imageSection,"89");
-  addLock(voiceSection,"169");
-  addLock(quizSection,"299");
-}
+  if (isAdmin) {
+    show(imageSection);
+    show(voiceSection);
+    show(questionSection);
+    show(quizSection);
+    return;
+  }
 
-if(plan === "89"){
-  show(imageSection);
-  show(questionSection);   // ✅ unlock final question
-  addLock(voiceSection,"169");
-  addLock(quizSection,"299");
-}
+  if(plan === "48"){
+    show(questionSection);
+    addLock(imageSection,"89");
+    addLock(voiceSection,"169");
+    addLock(quizSection,"299");
+  }
+
+  if(plan === "89"){
+    show(imageSection);
+    show(questionSection);
+    addLock(voiceSection,"169");
+    addLock(quizSection,"299");
+  }
 
   if(plan === "169"){
     show(imageSection);
     show(voiceSection);
-  show(questionSection);
+    show(questionSection);
     addLock(quizSection,"299");
   }
 
@@ -403,6 +461,7 @@ if(plan === "89"){
   }
 }
 
+window.applyStageLock = applyStageLock;
 applyStageLock();
 
 /* ===== CAT + EFFECTS ===== */
