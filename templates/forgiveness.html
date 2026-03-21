@@ -394,6 +394,16 @@ button:hover {
   </div>
 </div>
 
+<!-- STAGE 5 QUIZ -->
+<div class="stage" id="stage5">
+  <div class="card">
+    <h2>The Forgiveness <br><b>Quiz</b> 📄</h2>
+    <p style="opacity:.6; font-size:14px; margin-bottom:20px;">Let's talk it out... 🕊️</p>
+    <div id="quizContainer"></div>
+    <button onclick="nextStage()" style="width:100%; margin-top:20px;">Final Step ➡</button>
+  </div>
+</div>
+
 <!-- STAGE 6 FINAL -->
 <div class="stage" id="stage6">
   <div class="card" style="padding:60px 40px;">
@@ -413,13 +423,13 @@ import { initEpicInteractions } from "../js/stageEngine.js";
 
 document.addEventListener("DOMContentLoaded",()=>{
   const saved = JSON.parse(localStorage.getItem("only4you_story")) || {};
-  if (window.location.search.includes("preview")) return;
 
   initEpicInteractions({
-    message:"I'm so sorry, please forgive me 💛",
+    message: saved.message || "I'm so sorry... 🕊️",
     images: saved.images || [],
     voices: saved.voices || [],
-    finalQuestion:"Can you find it in your heart to forgive me? 💛"
+    quiz: saved.quiz || [],
+    finalQuestion: saved.finalQuestion || "Can you find it in your heart to forgive me? 💛"
   });
 });
 </script>

@@ -259,6 +259,48 @@
     animation: pulseGlow 2s infinite alternate;
   }
   
+  /* QUIZ RESULTS STYLES */
+  .quiz-results {
+    width: 380px;
+    margin-top: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+    display: none;
+    flex-direction: column;
+    gap: 15px;
+  }
+  .quiz-title {
+    color: #ff85a1;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .quiz-item {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 12px 15px;
+    border-radius: 12px;
+  }
+  .quiz-q {
+    font-size: 0.85rem;
+    opacity: 0.7;
+    margin-bottom: 4px;
+    color: #fff;
+  }
+  .quiz-a {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ff4d6d;
+  }
+  
   @keyframes shimmer {
     0% { left: -100%; }
     100% { left: 150%; }
@@ -308,10 +350,16 @@
     <h2>Your Surprise is Ready 💕</h2>
     <div class="scan">✨ Scan to reveal the magic 💖</div>
 
-    <div class="reaction-stats" id="reactionStats" style="display:none;">
-      <span style="font-size:1.2rem;">❤️</span> 
+    <div class="reaction-stats" id="reactionStats" style="display:none; transform: translateZ(20px);">
+      <span>💖</span> 
       <span id="reactionCount">0</span> 
-      <span>Loves Received</span>
+      Loves Received
+    </div>
+
+    <!-- QUIZ RESULTS SECTION -->
+    <div id="quizResults" class="quiz-results" style="transform: translateZ(20px);">
+      <div class="quiz-title">✨ Quiz Results ✨</div>
+      <div id="quizItems"></div>
     </div>
 
     <div class="actions">
@@ -362,9 +410,31 @@ window.addEventListener('DOMContentLoaded', () => {
     onSnapshot(ref, (snap) => {
       if (snap.exists()) {
         const data = snap.data();
+        
+        // 1. Reactions
         const count = data.reactions || 0;
         document.getElementById("reactionCount").innerText = count;
         document.getElementById("reactionStats").style.display = "flex";
+
+        // 2. Quiz Results
+        if (data.quiz && data.quiz.length > 0) {
+          const resultsSec = document.getElementById("quizResults");
+          const itemsBox = document.getElementById("quizItems");
+          resultsSec.style.display = "flex";
+          itemsBox.innerHTML = "";
+
+          data.quiz.forEach((qObj, index) => {
+            const answer = data.quizAnswers ? data.quizAnswers[index] : null;
+            const item = document.createElement("div");
+            item.className = "quiz-item";
+            item.innerHTML = `
+              <div class="quiz-q">${qObj.question}</div>
+              <div class="quiz-a">${answer || '<span style="opacity:0.5; font-weight:normal; font-size:0.8rem;">Waiting... ⏳</span>'}</div>
+            `;
+            itemsBox.appendChild(item);
+          });
+        }
+
       }
     });
   }

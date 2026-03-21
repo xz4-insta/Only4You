@@ -152,8 +152,6 @@ const ADMIN_UID = "Uwtpy28RdRXyOoKbU08485YmjIn2";
 const params = new URLSearchParams(window.location.search);
 const isPaid = params.get("paid");
 
-// ================= AFTER PAYMENT LOGIC REMOVED FROM CLIENT =================
-// The document is now created securely by the Cloud Function after verification.
 
 
 
@@ -175,9 +173,10 @@ const uploadData = JSON.parse(localStorage.getItem("only4you_story") || "{}");
 console.log("UPLOAD DATA:", uploadData);
 const finalQuestion = params.get("finalQuestion");
 
-/* attach uploaded media */
+/* attach uploaded media & quiz */
 existingEpicData.images = uploadData?.images || [];
 existingEpicData.voice  = uploadData?.voices?.[0] || "";
+existingEpicData.quiz   = uploadData?.quiz || [];
 
 /* save combined data */
 localStorage.setItem("surpriseData", JSON.stringify({
@@ -281,6 +280,7 @@ document.getElementById("payBtn").onclick = async function(){
   }
 };
 
+
 function showAdminBar() {
   let bar = document.getElementById("adminBar");
   if(!bar) {
@@ -329,7 +329,8 @@ onAuthStateChanged(auth, (user) => {
           ...surpriseData, 
           passcodeHash, 
           uid: user?.uid,
-          voices: surpriseData.voices || (surpriseData.voice ? [surpriseData.voice] : [])
+          voices: surpriseData.voices || (surpriseData.voice ? [surpriseData.voice] : []),
+          quiz: surpriseData.quiz || []
         };
 
         try {

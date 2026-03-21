@@ -17,14 +17,10 @@ const razorpay = new Razorpay({
 });
 
 // 2. Initialize Firebase Admin
-// 🔑 You need to download your Service Account JSON from:
-// Firebase Console -> Project Settings -> Service Accounts -> Generate New Private Key
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
-
 const db = admin.firestore();
 
 // --------------------------------------------------------
@@ -62,12 +58,11 @@ app.post("/verify-and-create", async (req, res) => {
     const data = req.body;
     const { 
       sender, receiver, message, template, plan, 
-      finalQuestion, images, voices, voice, // Added 'voice' singular
+      finalQuestion, images, voices, voice,
       passcodeHash, uid,
       razorpay_payment_id, razorpay_order_id, razorpay_signature
     } = data;
 
-    // 1. Basic Validation
     if (!sender || !receiver || !template) {
       return res.status(400).json({ error: "Missing required fields" });
     }
@@ -77,15 +72,12 @@ app.post("/verify-and-create", async (req, res) => {
     
     let isVerified = false;
 
-    // 2. Admin/Passcode check (Free Bypass)
+    // 1. Admin/Passcode check (Free Bypass)
     if (uid === ADMIN_UID || (passcodeHash && passcodeHash === MASTER_HASH)) {
-      console.log("✅ Creator bypass active via code match");
       isVerified = true;
-    } else {
-      console.log("❌ Master hash mismatch or no hash. Recv:", passcodeHash);
-    }
+    } 
 
-    // 3. Razorpay Signature Verification (Paid Flow)
+    // 2. Razorpay Signature Verification (Paid Flow)
     if (!isVerified && razorpay_payment_id && razorpay_order_id && razorpay_signature) {
       const body = razorpay_order_id + "|" + razorpay_payment_id;
       const expectedSignature = crypto
@@ -102,17 +94,17 @@ app.post("/verify-and-create", async (req, res) => {
       return res.status(403).json({ success: false, error: "Payment verification failed" });
     }
 
-    // 4. Server-enforced expiry
+    // 3. Server-enforced expiry
     let expiryTime = null;
     if (plan === "48" || plan === "89") {
       expiryTime = Date.now() + 24 * 60 * 60 * 1000;
     } else if (plan === "169") {
       expiryTime = Date.now() + 3 * 24 * 60 * 60 * 1000;
     } else if (plan === "299") {
-      expiryTime = Date.now() + 3650 * 24 * 60 * 60 * 1000; // 10 years
+      expiryTime = Date.now() + 3650 * 24 * 60 * 60 * 1000;
     }
 
-    // 5. Secure Write to Firestore
+    // 4. Secure Write to Firestore
     const docRef = await db.collection("surprises").add({
       sender,
       receiver,
@@ -121,7 +113,8 @@ app.post("/verify-and-create", async (req, res) => {
       plan: plan || "48",
       finalQuestion: finalQuestion || "",
       images: images || [],
-      voices: voices || (voice ? [voice] : []), // Fallback to singular voice
+      voices: voices || (voice ? [voice] : []),
+      quiz: data.quiz || [], // ADDED THIS
       createdAt: Date.now(),
       expiresAt: expiryTime,
       views: 0,
@@ -129,6 +122,7 @@ app.post("/verify-and-create", async (req, res) => {
       createdBy: uid || "anonymous",
       razorpay_payment_id: razorpay_payment_id || "admin_bypass"
     });
+
 
     res.status(200).json({ success: true, id: docRef.id });
 
@@ -142,3 +136,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Only4You Backend running on http://localhost:${PORT}`);
 });
+

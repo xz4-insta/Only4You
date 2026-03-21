@@ -412,6 +412,14 @@ margin-top:20px;
 <button onclick="nextStage()">Continue 💖</button>
 
 </div>
+
+<!-- STAGE 5 QUIZ -->
+<div class="stage" id="stage5">
+<h2>Love Quiz 📝</h2>
+<p style="opacity:.7; margin-bottom:20px;">How well do you know our story? 💕</p>
+<div id="quizContainer"></div>
+<button onclick="nextStage()" style="margin-top:20px;">Final Step ➡</button>
+</div>
 <!-- STAGE 6 FINAL -->
 
 <div class="stage" id="stage6">
@@ -429,5 +437,21 @@ margin-top:20px;
 </div>
 
 <div class="progress-dots" id="progressDots"></div>
+
+<script type="module">
+  import { initEpicInteractions } from "../js/stageEngine.js";
+
+  document.addEventListener("DOMContentLoaded",()=>{
+    const saved = JSON.parse(localStorage.getItem("only4you_story")) || {};
+
+    initEpicInteractions({
+      message: saved.message || "This is our story... 📖❤️",
+      images: saved.images || [],
+      voices: saved.voices || [],
+      quiz: saved.quiz || [],
+      finalQuestion: saved.finalQuestion || "Will you be mine forever? 💍"
+    });
+  });
+</script>
 </body>
-</html>
+</html>

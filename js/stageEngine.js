@@ -1,16 +1,10 @@
-/* =========================================
-EPIC STAGE ENGINE v3
-Premium Interactive Story Engine
-========================================= */
+import { getFirestore, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-let currentStage = 1
-const totalStages = 6
-let love = 0
-let yesScale = 1
+let currentStage = 1;
 
-/* =========================================
-PLAN LOCK SYSTEM
-========================================= */
+let love = 0;
+let yesScale = 1;
+
 
 export function applyStageLocking(plan){
 
@@ -18,7 +12,7 @@ const stageFlow = {
 "48":[1,6],
 "89":[1,2,3,6],
 "169":[1,2,3,4,6],
-"299":[1,2,3,4,6]
+"299":[1,2,3,4,5,6]
 }
 
 // Bypassing Lock for Creator/Admin session
@@ -30,12 +24,13 @@ try {
 } catch(e){}
 
 if(isCreator) {
-  window.allowedStages = [1,2,3,4,6];
+  window.allowedStages = [1,2,3,4,5,6];
 } else {
   window.allowedStages = stageFlow[plan] || [1,6];
 }
 
 }
+
 
 /* =========================================
 INIT ENGINE
@@ -48,12 +43,14 @@ initProgressDots()
 initLetter(data)
 initMemories(data)
 initVoices(data)
+initQuiz(data)
 initProposalGame()
 initTransitions()
 
 showStage(1)
 
 }
+
 
 /* =========================================
 STAGE SYSTEM
@@ -251,6 +248,36 @@ to{opacity:1;transform:translateY(0)}
   accent-color: #ff4d6d;
   -webkit-appearance: none;
   background: rgba(255,255,255,0.2);
+}
+
+/* QUIZ STYLES */
+.quiz-box {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 25px;
+  backdrop-filter: blur(10px);
+}
+.quiz-opt {
+  padding: 12px 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  text-align: center;
+}
+.quiz-opt:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+.quiz-opt.selected {
+  background: #ff4d6d;
+  border-color: #ff8fab;
+  box-shadow: 0 0 15px rgba(255, 77, 109, 0.4);
 }
 .seek-bar::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -703,12 +730,73 @@ particleCount:250,
 spread:140
 })
 
-const fireworks=new Fireworks.default(document.body,{
-speed:3,
-particles:120,
-trace:3
-})
-
-fireworks.start()
-
+  const fireworks = new Fireworks.default(document.body, {
+    speed: 3,
+    particles: 120,
+    trace: 3
+  });
+  fireworks.start();
 }
+
+
+/* =========================================
+LOVE QUIZ (STAGE 5)
+========================================= */
+
+let quizAnswers = {}
+
+function initQuiz(data){
+  if(!data.quiz || data.quiz.length === 0) return;
+  const container = document.getElementById("quizContainer");
+  if(!container) return;
+
+  container.innerHTML = "";
+  
+  data.quiz.forEach((q, qIndex) => {
+    const qBox = document.createElement("div");
+    qBox.className = "quiz-box";
+    qBox.innerHTML = `<h3 style="margin-bottom:15px; color:#ff4d6d;">${q.question}</h3>`;
+    
+    const optGrid = document.createElement("div");
+    optGrid.style.display = "grid";
+    optGrid.style.gap = "10px";
+
+    q.options.forEach((opt, oIndex) => {
+      if(!opt.trim()) return;
+      const btn = document.createElement("button");
+      btn.className = "quiz-opt";
+      btn.innerText = opt;
+      btn.onclick = () => selectOption(qIndex, oIndex, btn, qBox);
+      optGrid.appendChild(btn);
+    });
+
+    qBox.appendChild(optGrid);
+    container.appendChild(qBox);
+  });
+}
+
+function selectOption(qIndex, oIndex, btn, qBox){
+  // Deselect others in this box
+  qBox.querySelectorAll(".quiz-opt").forEach(b => b.classList.remove("selected"));
+  btn.classList.add("selected");
+  
+  quizAnswers[qIndex] = btn.innerText;
+  saveQuizAnswers();
+  spawnHearts();
+}
+
+async function saveQuizAnswers(){
+  const id = new URLSearchParams(window.location.search).get("id");
+  if(!id) return;
+  
+  try {
+    const db = getFirestore();
+    const ref = doc(db, "surprises", id);
+    await updateDoc(ref, {
+      quizAnswers: quizAnswers
+    });
+  } catch(e) {
+    console.error("Failed to save answers:", e);
+  }
+}
+

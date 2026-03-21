@@ -405,11 +405,22 @@ button:hover {
 <div class="stage" id="stage4">
   <div class="card">
     <div class="shimmer-effect"></div>
-    <h2>Secret <br><b>Wishes</b> 🎤</h2>
-    <p style="opacity:.8; font-size:16px;">Listen to your special messages!</p>
+    <h2>Birthday <br><b>Wishes</b> 🎧</h2>
+    <p style="opacity:.8; font-size:14px;">Listen to the party messages!</p>
     <div id="voiceContainer" class="voice-container"></div>
     <div id="reactionTarget" style="margin:20px 0;"></div>
-    <button onclick="nextStage()" style="width:100%;">Continue 🎉</button>
+    <button onclick="nextStage()" style="width:100%;">Continue</button>
+  </div>
+</div>
+
+<!-- STAGE 5 QUIZ -->
+<div class="stage" id="stage5">
+  <div class="card">
+    <div class="shimmer-effect"></div>
+    <h2>The Birthday <br><b>Game</b> 🎈</h2>
+    <p style="opacity:.8; font-size:14px; margin-bottom:20px;">How well do you know the star? 🥂</p>
+    <div id="quizContainer"></div>
+    <button onclick="nextStage()" style="width:100%; margin-top:20px;">Grand Finale ➡</button>
   </div>
 </div>
 
@@ -432,13 +443,13 @@ import { initEpicInteractions } from "../js/stageEngine.js";
 
 document.addEventListener("DOMContentLoaded",()=>{
   const saved = JSON.parse(localStorage.getItem("only4you_story")) || {};
-  if (window.location.search.includes("preview")) return;
 
   initEpicInteractions({
-    message:"Wishing you the happiest birthday ever! 🎂🎈",
+    message: saved.message || "Happy Birthday! You deserve the world 🎂🎁",
     images: saved.images || [],
     voices: saved.voices || [],
-    finalQuestion:"Did you like your surprise? 🎁"
+    quiz: saved.quiz || [],
+    finalQuestion: saved.finalQuestion || "Did you love your surprise? 🎁"
   });
 });
 </script>

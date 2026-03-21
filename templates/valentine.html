@@ -417,6 +417,17 @@ button:hover {
   </div>
 </div>
 
+<!-- STAGE 5 QUIZ -->
+<div class="stage" id="stage5">
+  <div class="card">
+    <div class="shimmer-effect"></div>
+    <h2>Love Quiz 📝</h2>
+    <p style="opacity:.9; font-size:14px; margin-bottom:20px;">Let's see how well you know us! 💕</p>
+    <div id="quizContainer"></div>
+    <button onclick="nextStage()" style="width:100%; margin-top:20px;">Final Step ➡</button>
+  </div>
+</div>
+
 <!-- STAGE 6 FINAL -->
 <div class="stage" id="stage6">
   <div class="card">
@@ -437,13 +448,13 @@ import { initEpicInteractions } from "../js/stageEngine.js";
 
 document.addEventListener("DOMContentLoaded",()=>{
   const saved = JSON.parse(localStorage.getItem("only4you_story")) || {};
-  if (window.location.search.includes("preview")) return;
 
   initEpicInteractions({
-    message:"You changed my life ❤️",
+    message: saved.message || "You changed my life ❤️",
     images: saved.images || [],
     voices: saved.voices || [],
-    finalQuestion:"Will you be my valentine? 💖"
+    quiz: saved.quiz || [],
+    finalQuestion: saved.finalQuestion || "Will you be my valentine? 💖"
   });
 });
 </script>

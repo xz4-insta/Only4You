@@ -360,6 +360,49 @@ window.goToPreview = function(){
 
   const plan = document.querySelector('input[name="plan"]:checked').value;
 
+  // CAPTURE QUIZ
+  const quiz = [
+    {
+      question: document.getElementById("q1")?.value || "",
+      options: [
+        document.getElementById("q1a")?.value || "",
+        document.getElementById("q1b")?.value || "",
+        document.getElementById("q1c")?.value || ""
+      ]
+    },
+    {
+      question: document.getElementById("q2")?.value || "",
+      options: [
+        document.getElementById("q2a")?.value || "",
+        document.getElementById("q2b")?.value || "",
+        document.getElementById("q2c")?.value || ""
+      ]
+    },
+    {
+      question: document.getElementById("q3")?.value || "",
+      options: [
+        document.getElementById("q3a")?.value || "",
+        document.getElementById("q3b")?.value || "",
+        document.getElementById("q3c")?.value || ""
+      ]
+    }
+  ].filter(q => q.question.trim() !== "");
+
+  // SAVE TO LOCALSTORAGE FOR PREVIEW
+  const story = {
+    sender,
+    receiver,
+    message,
+    template,
+    plan,
+    finalQuestion,
+    quiz,
+    images: window.getUploadedImages ? window.getUploadedImages() : [],
+    voices: window.getUploadedVoice ? [window.getUploadedVoice()] : []
+  };
+
+  localStorage.setItem("only4you_story", JSON.stringify(story));
+
   window.location.href =
     "preview.html?sender=" + encodeURIComponent(sender) +
     "&receiver=" + encodeURIComponent(receiver) +
@@ -369,6 +412,7 @@ window.goToPreview = function(){
     "&finalQuestion=" + encodeURIComponent(finalQuestion);
 
 };
+
 
 document.getElementById("template").addEventListener("change", (e) => {
   const fq = document.getElementById("finalQuestion");

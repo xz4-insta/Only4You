@@ -301,8 +301,9 @@ applyStageLocking(plan);
 
 import("./js/stageEngine.js").then(module=>{
 if(module.initEpicInteractions){
-module.initEpicInteractions(data);
+  module.initEpicInteractions({ ...data, id: id });
 }
+
 });
 
 applyPlanFeatures(plan,data,isOwner,id);
