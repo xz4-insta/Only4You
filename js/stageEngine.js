@@ -1,5 +1,23 @@
 import { getFirestore, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// ADD PUZZLE STYLES
+const style = document.createElement('style');
+style.textContent = `
+  .puzzle-tile {
+    cursor: pointer;
+    transition: transform 0.2s, border 0.2s;
+    user-select: none;
+    -webkit-user-drag: none;
+    border-radius: 4px;
+  }
+  .puzzle-tile:hover {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+`;
+document.head.appendChild(style);
+
+
 let currentStage = 1;
 
 let love = 0;
@@ -505,82 +523,181 @@ MEMORY SLIDESHOW
 ========================================= */
 
 function initMemories(data){
+  const screen=document.getElementById("tvScreen")
+  if(!screen) return
 
-const screen=document.getElementById("tvScreen")
-if(!screen) return
+  let index=0
+  let images=data.images || []
+  let puzzleActive = false;
 
-let index=0
-let images=data.images || []
+  const img=document.createElement("img")
+  img.style.width="100%"
+  img.style.height="100%"
+  img.style.objectFit="cover"
+  img.style.borderRadius="20px"
+  img.style.transition="opacity 0.4s ease"
 
-const img=document.createElement("img")
-img.style.width="100%"
-img.style.height="100%"
-img.style.objectFit="cover"
-img.style.borderRadius="20px"
-img.style.transition="opacity 0.4s ease"
+  screen.innerHTML=""
 
-screen.innerHTML=""
+  if(images.length){
+    img.src=images[0]
+    screen.appendChild(img)
+  }else{
+    screen.innerHTML="No memories yet 💔"
+  }
 
-if(images.length){
-img.src=images[0]
-screen.appendChild(img)
-}else{
-screen.innerHTML="No memories yet 💔"
-}
+  const isSpecialTemplate = ["valentine", "epic"].includes(data.template);
 
-/* always define buttons */
+  window.nextMemory=function(){
+    if(!images.length || puzzleActive) return
+    
+    index++
+    if(index>=images.length) index=0
+    
+    updateDisplay();
+  }
 
-window.nextMemory=function(){
+  window.prevMemory=function(){
+    if(!images.length || puzzleActive) return
+    
+    index--
+    if(index<0) index=images.length-1
+    
+    updateDisplay();
+  }
 
-if(!images.length) return
+  function updateDisplay() {
+    img.style.opacity="0"
+    setTimeout(()=>{
+      img.src=images[index]
+      img.style.opacity="1"
 
-index++
-if(index>=images.length) index=0
+      // Trigger puzzle on last image for special templates
+      const continueBtn = document.querySelector("#stage3 button[onclick*='nextStage']");
+      if(continueBtn && isSpecialTemplate) {
+         continueBtn.style.display = "none";
+         if(index === images.length - 1 && images.length > 0) {
+            startPuzzle();
+         }
+      }
+    },200)
+  }
 
-img.style.opacity="0"
+  function startPuzzle() {
+    puzzleActive = true;
+    setTimeout(() => {
+      renderPuzzle(images[index]);
+    }, 1000); // Give them a second to see the full image before it shuffles
+  }
 
-setTimeout(()=>{
-img.src=images[index]
-img.style.opacity="1"
-},200)
+  function renderPuzzle(imgUrl) {
+    screen.innerHTML = "";
+    screen.style.display = "grid";
+    screen.style.gridTemplateColumns = "repeat(3, 1fr)";
+    screen.style.gridTemplateRows = "repeat(3, 1fr)";
+    screen.style.gap = "2px";
+    screen.style.background = "#fff";
+    screen.style.padding = "2px";
 
-}
+    const pieces = [];
+    for(let i=0; i<9; i++) pieces.push(i);
+    
+    // Shuffle pieces
+    for (let i = pieces.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pieces[i], pieces[j]] = [pieces[j], pieces[i]];
+    }
 
-window.prevMemory=function(){
+    let selectedTile = null;
 
-if(!images.length) return
+    pieces.forEach((pieceIdx, currentPos) => {
+      const tile = document.createElement("div");
+      tile.className = "puzzle-tile";
+      tile.style.width = "100%";
+      tile.style.height = "100%";
+      tile.style.backgroundImage = `url(${imgUrl})`;
+      tile.style.backgroundSize = "300% 300%";
+      
+      const row = Math.floor(pieceIdx / 3);
+      const col = pieceIdx % 3;
+      tile.style.backgroundPosition = `${col * 50}% ${row * 50}%`;
+      tile.dataset.correctIdx = pieceIdx;
+      tile.dataset.currentIdx = pieceIdx; // We'll update this on swap
 
-index--
-if(index<0) index=images.length-1
+      tile.onclick = () => {
+        if(selectedTile === tile) {
+            tile.style.border = "none";
+            selectedTile = null;
+            return;
+        }
+        if(!selectedTile) {
+            selectedTile = tile;
+            tile.style.border = "2px solid #ff4d6d";
+            tile.style.boxShadow = "0 0 10px #ff4d6d";
+        } else {
+            // Swap logic
+            swapTiles(selectedTile, tile);
+            selectedTile.style.border = "none";
+            selectedTile.style.boxShadow = "none";
+            selectedTile = null;
+            checkSolved();
+        }
+      };
 
-img.style.opacity="0"
+      screen.appendChild(tile);
+    });
+  }
 
-setTimeout(()=>{
-img.src=images[index]
-img.style.opacity="1"
-},200)
+  function swapTiles(t1, t2) {
+    const bgP1 = t1.style.backgroundPosition;
+    const idx1 = t1.dataset.correctIdx;
+    
+    t1.style.backgroundPosition = t2.style.backgroundPosition;
+    t1.dataset.correctIdx = t2.dataset.correctIdx;
+    
+    t2.style.backgroundPosition = bgP1;
+    t2.dataset.correctIdx = idx1;
+    
+    // Animate swap slightly
+    t1.style.transform = "scale(0.9)";
+    t2.style.transform = "scale(0.9)";
+    setTimeout(() => {
+        t1.style.transform = "scale(1)";
+        t2.style.transform = "scale(1)";
+    }, 100);
+  }
 
-}
+  function checkSolved() {
+    const tiles = Array.from(screen.querySelectorAll(".puzzle-tile"));
+    const isSolved = tiles.every((tile, index) => {
+        return parseInt(tile.dataset.correctIdx) === index;
+    });
 
+    if(isSolved) {
+      puzzleActive = false; // Allow manual sliding again if they want
+      screen.style.gap = "0";
+      screen.style.padding = "0";
+      tiles.forEach(t => t.style.border = "none");
+      
+      // Show celebration and unlock next stage
+      const continueBtn = document.querySelector("#stage3 button[onclick*='nextStage']");
+      if(continueBtn) continueBtn.style.display = "block";
+      
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+    }
+  }
 
-
-/* auto slideshow */
-
-setInterval(()=>{
-
-if(!images.length) return
-
-index++
-if(index>=images.length) index=0
-
-img.style.opacity="0"
-
-setTimeout(()=>{
-img.src = images[index]
-img.style.opacity="1"
-},200)
-
-},3500)
+  // Auto slideshow (disabled if puzzle active)
+  setInterval(()=>{
+    if(!images.length || puzzleActive) return
+    index++
+    if(index>=images.length) index=0
+    updateDisplay();
+  },5000)
 }
 
 function initVoices(data){

@@ -422,6 +422,9 @@ button:hover {
 import { initEpicInteractions } from "../js/stageEngine.js";
 
 document.addEventListener("DOMContentLoaded",()=>{
+  // Skip if we are being loaded by success.html (which handles its own init)
+  if (window.location.pathname.includes("success.html")) return;
+
   const saved = JSON.parse(localStorage.getItem("only4you_story")) || {};
 
   initEpicInteractions({

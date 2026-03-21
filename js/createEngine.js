@@ -150,12 +150,16 @@ createBtn.addEventListener("click", async () => {
         }
       ];
 
-      surpriseData.quiz = quiz.filter(q => q.question.trim() !== "");
     }
 
     /* ==============================
        SAVE
     ============================== */
+    
+    // Add quiz if present
+    if(maxStage >= 5){
+       surpriseData.quiz = quiz.filter(q => q.question.trim() !== "");
+    }
 
     const docRef = await addDoc(collection(db, "surprises"), surpriseData);
 
