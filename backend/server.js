@@ -133,6 +133,28 @@ app.post("/verify-and-create", async (req, res) => {
   }
 });
 
+// --------------------------------------------------------
+// ENDPOINT: Save Quiz Answer (bypasses Firestore rules)
+// --------------------------------------------------------
+app.post("/save-quiz-answer", async (req, res) => {
+  try {
+    const { id, qIndex, answerValue } = req.body;
+    if (!id || qIndex === undefined || !answerValue) {
+      return res.status(400).json({ error: "Missing fields" });
+    }
+
+    const ref = db.collection("surprises").doc(id);
+    await ref.update({
+      [`quizAnswers.${qIndex}`]: answerValue
+    });
+
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error("Quiz save failed:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Only4You Backend running on http://localhost:${PORT}`);

@@ -1,3 +1,4 @@
+import { getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // ADD PUZZLE STYLES
@@ -97,19 +98,7 @@ const stageFlow = {
 "299":[1,2,3,4,5,6]
 }
 
-// Bypassing Lock for Creator/Admin session
-const raw = localStorage.getItem("_u4y_preview_lock");
-let isCreator = false;
-try {
-  const session = JSON.parse(raw);
-  if(session && session.active && session.expiry > Date.now()) isCreator = true;
-} catch(e){}
-
-if(isCreator) {
-  window.allowedStages = [1,2,3,4,5,6];
-} else {
-  window.allowedStages = stageFlow[plan] || [1,6];
-}
+window.allowedStages = stageFlow[plan] || [1,6];
 
 }
 
@@ -432,7 +421,7 @@ dots.forEach((d,i)=>{
 
 d.classList.remove("active")
 
-if(i+1===currentStage){
+if(window.allowedStages[i] === currentStage){
 d.classList.add("active")
 }
 
@@ -1008,6 +997,7 @@ function initQuiz(data){
     q.options.forEach((opt, oIndex) => {
       if(!opt.trim()) return;
       const btn = document.createElement("button");
+      btn.type = "button";
       btn.className = "quiz-opt";
       btn.innerText = opt;
       
@@ -1024,11 +1014,42 @@ function initQuiz(data){
     container.appendChild(qBox);
   });
 
-  // Ensure "Final Step" button is consistent and visible
+  // Hide the next stage button initially
   let nextBtn = document.querySelector("#stage5 button[onclick*='nextStage']");
-  if(nextBtn) {
-    nextBtn.className = "stage-continue-btn";
-    nextBtn.innerText = "Final Step ➡";
+  if(nextBtn) nextBtn.style.display = "none";
+
+  const submitBtn = document.createElement("button");
+  submitBtn.type = "button";
+  submitBtn.className = "stage-continue-btn";
+  submitBtn.innerText = "Submit Quiz 📝";
+  submitBtn.style.marginTop = "20px";
+  
+  submitBtn.onclick = () => {
+    const answeredCount = Object.keys(quizAnswers).length;
+    if(answeredCount < data.quiz.length) {
+      alert(`Please answer all ${data.quiz.length} questions first! 💕`);
+      return;
+    }
+    
+    // Show the real next button and hide submit
+    if(nextBtn) {
+      nextBtn.style.display = "block";
+      nextBtn.className = "stage-continue-btn";
+      nextBtn.innerText = "Final Step ➡";
+    }
+    submitBtn.style.display = "none";
+    
+    // Final save just in case
+    saveQuizAnswers("completion", "done");
+    spawnHearts();
+  };
+
+  container.appendChild(submitBtn);
+
+  // If already fully answered (reloaded), show nextBtn immediately
+  if(Object.keys(quizAnswers).length >= data.quiz.length) {
+     if(nextBtn) nextBtn.style.display = "block";
+     submitBtn.style.display = "none";
   }
 }
 
@@ -1038,24 +1059,32 @@ function selectOption(qIndex, oIndex, btn, qBox){
   btn.classList.add("selected");
   
   const answerValue = btn.innerText;
+  quizAnswers[qIndex] = answerValue; // ← update local state too
   saveQuizAnswers(qIndex, answerValue);
   spawnHearts();
 }
 
 async function saveQuizAnswers(qIndex, answerValue){
   const id = new URLSearchParams(window.location.search).get("id");
-  if(!id) return;
+  if(!id) {
+    console.error("❌ No surprise ID in URL — cannot save quiz answer.");
+    return;
+  }
   
   try {
-    const db = getFirestore();
-    const ref = doc(db, "surprises", id);
-    // Use dot-notation to update ONLY this specific question's answer
-    // This prevents race conditions and overwriting other answers
-    await updateDoc(ref, {
-      [`quizAnswers.${qIndex}`]: answerValue
+    const response = await fetch("https://only4you-backend.onrender.com/save-quiz-answer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, qIndex, answerValue })
     });
+    const result = await response.json();
+    if(result.success) {
+      console.log(`✅ Quiz answer ${qIndex} saved: ${answerValue}`);
+    } else {
+      console.error("❌ Backend rejected quiz save:", result.error);
+    }
   } catch(e) {
-    console.error("Failed to save answer:", e);
+    console.error("❌ Failed to reach backend:", e.message);
   }
 }
 

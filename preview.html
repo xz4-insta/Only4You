@@ -151,7 +151,7 @@ const ADMIN_UID = "Uwtpy28RdRXyOoKbU08485YmjIn2";
 
 // Helper for fetch with timeout
 async function fetchWithTimeout(resource, options = {}) {
-  const { timeout = 45000 } = options;
+  const { timeout = 120000 } = options; // Increased to 2 mins for Render cold starts
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
   try {
@@ -233,7 +233,7 @@ document.getElementById("payBtn").onclick = async function(){
 
   try {
     // 1. Create Order on Server
-    const orderResponse = await fetch("https://only4you-backend.onrender.com/create-order", {
+    const orderResponse = await fetchWithTimeout("https://only4you-backend.onrender.com/create-order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ plan: plan })
@@ -279,7 +279,11 @@ document.getElementById("payBtn").onclick = async function(){
           }
         } catch (e) {
           console.error(e);
-          alert("Verification Error. Please try again.");
+          if (e.name === 'AbortError') {
+             alert("The server is taking a bit longer to wake up! ⏳ Please wait 10 seconds and try generating again. It usually takes 1-2 minutes for the first one of the day! 💖");
+          } else {
+             alert("Verification Error. Please ensure you're online or try refreshing. ❌");
+          }
           overlay.style.display = "none";
           payBtn.disabled = false;
           payBtn.innerText = originalText;
@@ -300,7 +304,11 @@ document.getElementById("payBtn").onclick = async function(){
 
   } catch (e) {
     console.error(e);
-    alert("Connection Error. Please try again.");
+    if (e.name === 'AbortError') {
+       alert("Order creation timed out! ⏳ The server is likely waking up from sleep. Please wait a moment and try clicking the button again! 💖");
+    } else {
+       alert("Connection Error. Please check your internet and try again. ❌");
+    }
     payBtn.disabled = false;
     payBtn.innerText = originalText;
   }
@@ -381,7 +389,11 @@ onAuthStateChanged(auth, (user) => {
           }
         } catch (e) {
           console.error("Save Error:", e);
-          alert("Connection Timeout or Server Error. The Render server might be waking up. Please try again in 30 seconds! ⏳");
+          if (e.name === 'AbortError') {
+            alert("The server is still waking up! ⏳ Render sometimes takes 1-2 minutes to start. Please wait 10 seconds and try clicking 'Direct Generate' again! 💖");
+          } else {
+            alert("Connection Error. Please ensure you are online and try again! ❌");
+          }
           overlay.style.display = "none";
         }
       };

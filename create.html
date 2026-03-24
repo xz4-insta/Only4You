@@ -489,13 +489,7 @@ window.applyStageLock = function(){
   hide(questionSection);
   hide(quizSection);
 
-  if (isAdmin) {
-    show(imageSection);
-    show(voiceSection);
-    show(questionSection);
-    show(quizSection);
-    return;
-  }
+  // Respect plan boundaries even for admin, but allow them to unlock anything for free (logic already exists in preview)
 
   if(plan === "48"){
     show(questionSection);
