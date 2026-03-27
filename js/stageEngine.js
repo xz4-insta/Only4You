@@ -79,6 +79,21 @@ style.textContent = `
     transform: translateY(-3px);
     box-shadow: 0 15px 30px rgba(255,77,109,0.5);
   }
+  @keyframes lovePulse {
+    0% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.05); }
+    100% { transform: translate(-50%, -50%) scale(1); }
+  }
+  .monkey-gif {
+    animation: lovePulse 2s infinite ease-in-out;
+  }
+  .fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translate(-50%, -45%); }
+    to { opacity: 1; transform: translate(-50%, -50%); }
+  }
 `;
 document.head.appendChild(style);
 
@@ -770,6 +785,21 @@ function initMemories(data){
     screen.style.gap = "4px";
     screen.style.background = "#000";
     screen.style.padding = "4px";
+    screen.style.position = "relative"; // For absolute reference img
+    
+    // Add reference image as a guide in the top-right (as requested)
+    const refImg = document.createElement("img");
+    refImg.id = "puzzleRefImg";
+    refImg.src = imgUrl;
+    // Positioned fixed to match the top-right "white line" area in the screenshot
+    refImg.style.cssText = "position:fixed; top:100px; right:30px; width:140px; height:140px; border:3px solid white; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.5); z-index:10001; cursor:pointer; transition:0.3s; object-fit:cover;";
+    refImg.title = "Reference - Click to toggle size";
+    refImg.onclick = () => {
+        const isSmall = refImg.style.width === "140px";
+        refImg.style.width = isSmall ? "300px" : "140px";
+        refImg.style.height = isSmall ? "300px" : "140px";
+    };
+    document.body.appendChild(refImg);
 
     const pieces = [];
     for(let i=0; i<9; i++) pieces.push(i);
@@ -868,6 +898,10 @@ function initMemories(data){
         screen.style.gap = "0";
         screen.style.padding = "0";
         tiles.forEach(t => t.style.border = "none");
+        
+        // Remove reference image
+        const ref = document.getElementById("puzzleRefImg");
+        if(ref) ref.remove();
         
         const continueBtn = document.querySelector("#stage3 button[onclick*='nextStage']");
         if(continueBtn) {
@@ -1129,31 +1163,49 @@ function initCatchGame(data) {
     const area = document.getElementById("catchArea");
     if(!area) return;
 
-    heartInterval = setInterval(() => {
-       if (score >= 10) {
-         clearInterval(heartInterval);
-         return;
-       }
+     heartInterval = setInterval(() => {
+        if (score >= 10) {
+          clearInterval(heartInterval);
+          return;
+        }
 
-       const heart = document.createElement("div");
-       heart.innerHTML = ["💖", "💗", "💕", "💞", "💘"][Math.floor(Math.random()*5)];
-       heart.style.position = "absolute";
-       heart.style.left = (Math.random() * 80 + 5) + "%";
-       heart.style.top = "-40px";
-       heart.style.fontSize = "30px";
-       heart.style.cursor = "pointer";
-       heart.style.transition = "top 2.5s linear";
-       heart.style.userSelect = "none";
-       
-       // Handle both click and touch for fast tapping
-       const tapHandler = (e) => {
-         e.preventDefault();
-         score++;
-         const scoreEl = document.getElementById("catchScore");
-         if(scoreEl) scoreEl.innerText = score + " / 10";
-         heart.remove();
-         
-         const pop = document.createElement("div");
+        const isHeartbreak = Math.random() < 0.2; // 20% chance for heartbreak
+        const heart = document.createElement("div");
+        heart.innerHTML = isHeartbreak ? "💔" : ["💖", "💗", "💕", "💞", "💘"][Math.floor(Math.random()*5)];
+        heart.style.position = "absolute";
+        heart.style.left = (Math.random() * 80 + 5) + "%";
+        heart.style.top = "-40px";
+        heart.style.fontSize = "30px";
+        heart.style.cursor = "pointer";
+        heart.style.transition = "top 2.5s linear";
+        heart.style.userSelect = "none";
+        
+        // Handle both click and touch for fast tapping
+        const tapHandler = (e) => {
+          e.preventDefault();
+          
+          if(isHeartbreak) {
+            score = 0;
+            const scoreEl = document.getElementById("catchScore");
+            if(scoreEl) {
+               scoreEl.innerText = "0 / 10";
+               scoreEl.style.color = "red";
+               scoreEl.style.transform = "scale(1.3)";
+               setTimeout(() => {
+                  scoreEl.style.color = "#ff4d6d";
+                  scoreEl.style.transform = "scale(1)";
+               }, 500);
+            }
+            heart.remove();
+            return;
+          }
+
+          score++;
+          const scoreEl = document.getElementById("catchScore");
+          if(scoreEl) scoreEl.innerText = score + " / 10";
+          heart.remove();
+          
+          const pop = document.createElement("div");
          pop.innerHTML = "✨";
          pop.style.position = "absolute";
          pop.style.left = heart.style.left;
@@ -1194,41 +1246,97 @@ PROPOSAL GAME
 ========================================= */
 
 function initProposalGame(){
+  let noClickCount = 0;
 
-document.addEventListener("click",function(e){
-
-if(e.target && e.target.id==="noBtn"){
-
-const noBtn=document.getElementById("noBtn")
-const yesBtn=document.getElementById("yesBtn")
-
-if(!noBtn || !yesBtn) return
-
-const x=Math.random()*(window.innerWidth-120)
-const y=Math.random()*(window.innerHeight-80)
-
-noBtn.style.position="fixed"
-noBtn.style.left=x+"px"
-noBtn.style.top=y+"px"
-
-yesScale+=0.35
-yesBtn.style.transform=`scale(${yesScale})`
-
-return
-}
-
-/* SAFARI/MOBILE SCALED CLICK FIX */
-if(window.yesScale > 1) {
-  const yesBtn = document.getElementById("yesBtn")
-  if (yesBtn && e.target && e.target.id !== "yesBtn") {
-    const rect = yesBtn.getBoundingClientRect();
-    if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
-      if(typeof window.celebrate === "function") window.celebrate();
+  const showMonkey = () => {
+    const noBtn = document.getElementById("noBtn");
+    if(!noBtn) return;
+    
+    let monkey = document.getElementById("monkeyVideo");
+    if(!monkey) {
+      monkey = document.createElement("video");
+      monkey.id = "monkeyVideo";
+      monkey.autoplay = true;
+      monkey.loop = true;
+      monkey.muted = true; 
+      monkey.playsInline = true; 
+      monkey.className = "monkey-gif fade-in";
+      monkey.style.cssText = "width:200px; max-width:80%; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:1000; border-radius:15px; box-shadow:0 15px 40px rgba(0,0,0,0.6); pointer-events:none; display:none;";
+      const card = noBtn.closest(".card");
+      if(card) {
+          card.style.position = "relative";
+          card.appendChild(monkey);
+      }
     }
-  }
-}
+    
+    // Switch source based on click count
+    const src = noClickCount >= 2 ? "assets/monkey2.mp4" : "assets/monkey.mp4";
+    if(monkey.src.indexOf(src) === -1) {
+        monkey.src = src;
+        monkey.load();
+    }
 
-})
+    if(monkey) {
+        monkey.style.display = "block";
+        monkey.play().catch(e => console.log("Video play failed", e));
+    }
+  };
+
+  const moveNoBtn = () => {
+    const noBtn = document.getElementById("noBtn");
+    const yesBtn = document.getElementById("yesBtn");
+    if(!noBtn || !yesBtn) return;
+
+    const card = noBtn.closest(".card");
+    const rect = card ? card.getBoundingClientRect() : { top:0, left:0, bottom:0, right:0 };
+    
+    let x, y;
+    let safe = false;
+    let attempts = 0;
+
+    while(!safe && attempts < 20) {
+      x = Math.random() * (window.innerWidth - 120);
+      y = Math.random() * (window.innerHeight - 80);
+      
+      // Check if this position overlaps with the gift card area
+      const btnRect = { left: x, top: y, right: x + 120, bottom: y + 80 };
+      const overlaps = !(btnRect.right < rect.left || 
+                         btnRect.left > rect.right || 
+                         btnRect.bottom < rect.top || 
+                         btnRect.top > rect.bottom);
+      
+      if(!overlaps) safe = true;
+      attempts++;
+    }
+
+    noBtn.style.position = "fixed";
+    noBtn.style.left = x + "px";
+    noBtn.style.top = y + "px";
+    noBtn.style.zIndex = "2000"; // Highest z-index to stay on top
+
+    yesScale += 0.2;
+    yesBtn.style.transform = `scale(${yesScale})`;
+    
+    noClickCount++;
+    showMonkey();
+  };
+
+  // Removed mouseover listener as per request - only click triggers it now
+  
+  document.addEventListener("click", function(e){
+    if(e.target && e.target.id === "noBtn") moveNoBtn();
+
+    /* SAFARI/MOBILE SCALED CLICK FIX */
+    if(window.yesScale > 1) {
+      const yesBtn = document.getElementById("yesBtn")
+      if (yesBtn && e.target && e.target.id !== "yesBtn") {
+        const rect = yesBtn.getBoundingClientRect();
+        if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
+          if(typeof window.celebrate === "function") window.celebrate();
+        }
+      }
+    }
+  });
 
 }
 
@@ -1255,6 +1363,10 @@ ring.classList.add("show")
 
 if(yesBtn) yesBtn.style.display = "none"
 if(noBtn) noBtn.style.display = "none"
+
+// Remove Monkey reaction video upon Yes
+const monkey = document.getElementById("monkeyVideo") || document.getElementById("monkeyGif");
+if(monkey) monkey.remove();
 
 confetti({
 particleCount:250,
