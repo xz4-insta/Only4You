@@ -7,6 +7,7 @@ const UPLOAD_PRESET = "only4you";
 
 let uploadedImages = [];
 let uploadedVoice = null;
+let uploadedBgMusic = null;
 
 /* ======================================================
    LOAD PREVIOUS UPLOADS (important for refresh)
@@ -24,7 +25,8 @@ function saveUploads(){
 
   const story = {
     images: uploadedImages,
-    voices: uploadedVoice ? [uploadedVoice] : []
+    voices: uploadedVoice ? [uploadedVoice] : [],
+    bgMusic: uploadedBgMusic
   };
 
   localStorage.setItem("only4you_story", JSON.stringify(story));
@@ -38,8 +40,10 @@ function saveUploads(){
 
 const imageInput   = document.getElementById("imageInput");
 const voiceInput   = document.getElementById("voiceInput");
+const bgMusicInput = document.getElementById("bgMusicInput");
 const imagePreview = document.getElementById("imagePreview");
 const voicePreview = document.getElementById("voicePreview");
+const bgMusicPreview = document.getElementById("bgMusicPreview");
 const createBtn    = document.getElementById("createBtn");
 
 /* ======================================================
@@ -128,6 +132,37 @@ const voiceWidget = cloudinary.createUploadWidget(
 
 if(voiceInput){
   voiceInput.addEventListener("click", () => voiceWidget.open());
+}
+
+/* ======================================================
+   BG MUSIC UPLOAD WIDGET
+====================================================== */
+
+const bgMusicWidget = cloudinary.createUploadWidget(
+{
+  cloudName: CLOUD_NAME,
+  uploadPreset: UPLOAD_PRESET,
+  multiple: false,
+  sources: ["local"],
+  resourceType: "video", // Cloudinary treats audio as video
+  maxFileSize: 10000000
+},
+(error, result) => {
+  if (!error && result && result.event === "success") {
+    uploadedBgMusic = result.info.secure_url;
+    saveUploads();
+    if (bgMusicPreview){
+      bgMusicPreview.innerHTML = `<audio controls src="${uploadedBgMusic}" style="width:100%; margin-top:10px;"></audio>`;
+    }
+  }
+  if(error){
+    console.error("BG Music Upload Error:", error);
+    alert("Background music upload failed.");
+  }
+});
+
+if(bgMusicInput){
+  bgMusicInput.addEventListener("click", () => bgMusicWidget.open());
 }
 
 /* ======================================================
@@ -255,6 +290,10 @@ if(saved.voices && saved.voices.length){
   uploadedVoice = saved.voices[0];
 }
 
+if(saved.bgMusic) {
+  uploadedBgMusic = saved.bgMusic;
+}
+
 // Initial check
 if(templateSelect) updateWidgetForTemplate();
 
@@ -264,3 +303,4 @@ if(templateSelect) updateWidgetForTemplate();
 
 window.getUploadedImages = () => uploadedImages;
 window.getUploadedVoice  = () => uploadedVoice;
+window.getUploadedBgMusic  = () => uploadedBgMusic;

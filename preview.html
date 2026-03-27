@@ -176,6 +176,8 @@ const sender = params.get("sender");
 const receiver = params.get("receiver");
 const message = params.get("message");
 const template = params.get("template");
+const theme = params.get("theme") || "default";
+const scratchMessage = params.get("scratchMessage") || "";
 const plan = params.get("plan") || "48";
 
 if (!sender || !receiver || !message || !template) {
@@ -191,6 +193,7 @@ const finalQuestion = params.get("finalQuestion");
 /* attach uploaded media & quiz */
 existingEpicData.images = uploadData?.images || [];
 existingEpicData.voice  = uploadData?.voices?.[0] || "";
+existingEpicData.bgMusic= uploadData?.bgMusic || null;
 existingEpicData.quiz   = uploadData?.quiz || [];
 
 /* save combined data */
@@ -199,7 +202,9 @@ localStorage.setItem("surpriseData", JSON.stringify({
   receiver,
   message,
   template,
+  theme,
   plan,
+  scratchMessage,
   finalQuestion,
   ...existingEpicData
 }));

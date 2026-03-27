@@ -356,6 +356,12 @@
       Loves Received
     </div>
 
+    <!-- REACTION VIDEO SECTION -->
+    <div id="reactionVideoBox" style="display:none; transform: translateZ(25px); width:100%; margin-top:20px;">
+      <h3 style="color:#ff85a1; font-size:1.1rem; margin-bottom:10px;">📸 Secret Reaction Caught!</h3>
+      <video id="reactionPlayer" controls style="width:100%; border-radius:15px; border:2px solid rgba(255,255,255,0.2); box-shadow:0 10px 20px rgba(0,0,0,0.5);"></video>
+    </div>
+
     <!-- QUIZ RESULTS SECTION -->
     <div id="quizResults" class="quiz-results" style="transform: translateZ(20px);">
       <div class="quiz-title">✨ Quiz Results ✨</div>
@@ -411,10 +417,18 @@ window.addEventListener('DOMContentLoaded', () => {
       if (snap.exists()) {
         const data = snap.data();
         
-        // 1. Reactions
+        // 1. Reactions (Old Like Counter)
         const count = data.reactions || 0;
         document.getElementById("reactionCount").innerText = count;
         document.getElementById("reactionStats").style.display = "flex";
+
+        // 1.5 Real Video Reaction Tracking
+        if (data.reaction) {
+          const videoBox = document.getElementById("reactionVideoBox");
+          const player = document.getElementById("reactionPlayer");
+          player.src = data.reaction;
+          videoBox.style.display = "block";
+        }
 
         // 2. Quiz Results
         if (data.quiz && data.quiz.length > 0) {
@@ -439,7 +453,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  let currentLink = id ? `${window.location.origin}/success.html?id=${id}` : "https://example.com";
+  let currentLink = id ? `https://only4you-backend.onrender.com/s/${id}?origin=${encodeURIComponent(window.location.origin)}` : "https://example.com";
   let qrInstance;
 
   // Initialize Vanilla Tilt

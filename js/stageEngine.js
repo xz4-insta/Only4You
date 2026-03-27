@@ -110,18 +110,122 @@ INIT ENGINE
 export function initEpicInteractions(data){
 window.storyData = data
 
-initProgressDots()
-initLetter(data)
-initMemories(data)
-initVoices(data)
-initQuiz(data)
-initProposalGame()
-initTransitions()
+  if (data.scratchMessage) {
+    const idx = window.allowedStages.indexOf(6);
+    if (idx !== -1) window.allowedStages.splice(idx, 0, "scratch");
+  }
+
+  if (data.plan === "169" || data.plan === "299") {
+    const idx = window.allowedStages.indexOf(6);
+    if (idx !== -1) window.allowedStages.splice(idx, 0, "catchgame");
+  }
+
+  initProgressDots()
+  applyTheme(data.theme)
+  initBGM(data)
+  initLetter(data)
+  initMemories(data)
+  initVoices(data)
+  initQuiz(data)
+  initCatchGame(data)
+  initScratch(data)
+  initProposalGame()
+  initTransitions()
 
 showStage(1)
 
 }
 
+
+/* =========================================
+THEME SYSTEM
+========================================= */
+
+function applyTheme(themeName) {
+  if (!themeName || themeName === "default") return;
+
+  let css = "";
+  if (themeName === "dark") {
+    css = `
+      body { background: #121212 !important; color: #e0e0e0 !important; }
+      .card, .stage, #letterContent { background: #1e1e1e !important; color: #e0e0e0 !important; box-shadow: 0 10px 30px rgba(0,0,0,0.8) !important; border: 1px solid #333 !important; }
+      h2, h3, .quiz-title, .lovePulse { color: #ff4d88 !important; }
+      button, .btn, .next-btn { background: #ff4d88 !important; color: #fff !important; }
+      .flap { border-top-color: #2a2a2a !important; }
+      .envelope { background: #2a2a2a !important; }
+      .voice-player { background: #2a2a2a !important; }
+      .progress-bar { background: #333 !important; }
+    `;
+  } else if (themeName === "pastel") {
+    css = `
+      body { background: linear-gradient(135deg, #fdfdfd, #e2f0cb) !important; color: #5c4b51 !important; }
+      .card, .stage, #letterContent { background: rgba(255,255,255,0.92) !important; color: #5c4b51 !important; box-shadow: 0 10px 30px rgba(92,75,81,0.1) !important; }
+      h2, h3, .quiz-title, .lovePulse { color: #ffb7b2 !important; }
+      button, .btn, .next-btn { background: #ffb7b2 !important; color: #fff !important; }
+      .flap { border-top-color: #ffdac1 !important; }
+      .envelope { background: #ffdac1 !important; }
+      .voice-player { background: #fdfdfd !important; }
+    `;
+  } else if (themeName === "neon") {
+    css = `
+      body { background: #050505 !important; color: #fff !important; }
+      .card, .stage, #letterContent { background: #111 !important; color: #fff !important; box-shadow: 0 0 20px #0ff, inset 0 0 10px #0ff !important; border: 1px solid #0ff !important; }
+      h2, h3, .quiz-title, .lovePulse { color: #0ff !important; text-shadow: 0 0 10px #0ff !important; }
+      button, .btn, .next-btn { background: transparent !important; border: 1px solid #f0f !important; color: #f0f !important; box-shadow: 0 0 10px #f0f !important; }
+      .flap { border-top-color: #222 !important; }
+      .envelope { background: #111 !important; border: 1px solid #0ff !important; }
+      .voice-player { background: #111 !important; border: 1px solid #0ff !important; }
+      .progress-dot { background: #fff !important; box-shadow: 0 0 5px #fff !important; }
+      .progress-dot.active { background: #0ff !important; box-shadow: 0 0 15px #0ff !important; }
+    `;
+  }
+
+  if (css) {
+    const style = document.createElement("style");
+    style.innerHTML = css;
+    document.head.appendChild(style);
+  }
+}
+
+/* =========================================
+BG MUSIC
+========================================= */
+
+function initBGM(data) {
+  if (!data.bgMusic) return;
+  
+  const bgm = document.createElement("audio");
+  bgm.id = "globalBgm";
+  bgm.src = data.bgMusic;
+  bgm.loop = true;
+  bgm.volume = 0.5; // Starts at half volume
+  document.body.appendChild(bgm);
+
+  // Start playing on the very first tap anywhere in the document
+  const playOnce = () => {
+    bgm.play().catch(e => console.log("Autoplay prevented", e));
+    document.removeEventListener("click", playOnce);
+  };
+  document.addEventListener("click", playOnce);
+}
+
+window.duckBGM = function(ducked) {
+  const bgm = document.getElementById("globalBgm");
+  if(!bgm) return;
+  // Fade volume
+  let target = ducked ? 0.05 : 0.5;
+  let current = bgm.volume;
+  let step = ducked ? -0.05 : 0.05;
+  const fade = setInterval(() => {
+    current += step;
+    if((ducked && current <= target) || (!ducked && current >= target)) {
+      bgm.volume = target;
+      clearInterval(fade);
+    } else {
+      bgm.volume = current;
+    }
+  }, 100);
+}
 
 /* =========================================
 STAGE SYSTEM
@@ -446,6 +550,36 @@ flap.style.transform="rotateX(180deg)"
 letter.style.bottom="0"
 
 }
+
+// Add Swipe to Open Mechanics
+const envelope = document.querySelector(".envelope");
+if(envelope) {
+  let startY = 0;
+  envelope.addEventListener("touchstart", (e) => startY = e.touches[0].clientY, {passive: true});
+  envelope.addEventListener("touchmove", (e) => {
+    let currentY = e.touches[0].clientY;
+    if (startY - currentY > 40) { // Swiped up
+      window.openLetter();
+    }
+  }, {passive: true});
+}
+
+// 3D Card Hover Effect for Desktop
+document.addEventListener("mousemove", (e) => {
+  const cards = document.querySelectorAll(".card");
+  const xAxis = (window.innerWidth / 2 - e.pageX) / 40;
+  const yAxis = (window.innerHeight / 2 - e.pageY) / 40;
+  cards.forEach(card => {
+    // Only apply if not actively animating
+    card.style.transform = `perspective(1000px) rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+  });
+});
+
+document.addEventListener("mouseleave", () => {
+  document.querySelectorAll(".card").forEach(card => {
+    card.style.transform = `perspective(1000px) rotateY(0deg) rotateX(0deg)`;
+  });
+});
 
 if(!data.message) return
 
@@ -809,19 +943,36 @@ function initMemories(data){
   },5000)
 }
 
-function initVoices(data){
+/* =========================================
+AUDIO VISUALIZATION (WaveSurfer.js)
+========================================= */
+
+async function loadWaveSurfer() {
+  if (window.WaveSurfer) return window.WaveSurfer;
+  return new Promise((resolve) => {
+    const script = document.createElement("script");
+    script.src = "https://unpkg.com/wavesurfer.js@7";
+    script.onload = () => resolve(window.WaveSurfer);
+    document.head.appendChild(script);
+  });
+}
+
+async function initVoices(data){
   if(!data.voices || !data.voices.length) return;
 
   const container = document.getElementById("voiceContainer");
   if(!container) return;
 
+  container.innerHTML = "<p style='text-align:center; opacity:0.7;'>Loading Audio... 🎶</p>";
+  
+  const WaveSurfer = await loadWaveSurfer();
+  
   container.innerHTML = "";
+  if(!window.allWavesurfers) window.allWavesurfers = [];
 
   data.voices.forEach((voiceUrl, i) => {
     const player = document.createElement("div");
     player.className = "voice-player";
-
-    const audio = new Audio(voiceUrl);
 
     player.innerHTML = `
       <div class="player-top">
@@ -833,14 +984,13 @@ function initVoices(data){
           <span class="voice-time" id="time-${i}">0:00 / 0:00</span>
         </div>
       </div>
-      <div class="seek-wrapper">
-        <input type="range" class="seek-bar" id="seek-${i}" value="0" min="0" max="100">
-      </div>
+      <div class="waveform-wrapper" id="waveform-${i}" style="margin-top:10px;"></div>
     `;
+
+    container.appendChild(player);
 
     const playBtn = player.querySelector(".play-btn");
     const icon = playBtn.querySelector(".icon");
-    const seekBar = player.querySelector(".seek-bar");
     const timeDisplay = player.querySelector(".voice-time");
 
     function formatTime(s) {
@@ -850,45 +1000,243 @@ function initVoices(data){
       return `${m}:${ss.toString().padStart(2, '0')}`;
     }
 
+    const wavesurfer = WaveSurfer.create({
+      container: `#waveform-${i}`,
+      waveColor: 'rgba(255, 255, 255, 0.4)',
+      progressColor: '#ff4d6d',
+      url: voiceUrl,
+      height: 40,
+      barWidth: 2,
+      barRadius: 2,
+      cursorWidth: 0,
+      normalize: true
+    });
+
+    wavesurfer.on('ready', (duration) => {
+      timeDisplay.innerText = `0:00 / ${formatTime(duration)}`;
+    });
+
+    wavesurfer.on('audioprocess', (currentTime) => {
+      timeDisplay.innerText = `${formatTime(currentTime)} / ${formatTime(wavesurfer.getDuration())}`;
+    });
+
+    wavesurfer.on('finish', () => {
+      icon.innerText = "▶";
+      if(window.duckBGM) window.duckBGM(false); // Restore BGM volume
+    });
+
     playBtn.onclick = () => {
-      const allIcons = container.querySelectorAll(".icon");
-      const isPaused = audio.paused;
-
-      // Pause all and reset all icons
-      container.querySelectorAll('audio').forEach(a => a.pause());
-      allIcons.forEach(i => i.innerText = "▶");
-
-      if (isPaused) {
-        audio.play();
+      // pause all others
+      window.allWavesurfers.forEach((ws, idx) => {
+        if(idx !== i && ws.isPlaying()) {
+           ws.pause();
+           const otherPlay = document.getElementById(`play-${idx}`);
+           if(otherPlay) otherPlay.querySelector(".icon").innerText = "▶";
+        }
+      });
+      
+      wavesurfer.playPause();
+      if(wavesurfer.isPlaying()) {
         icon.innerText = "⏸";
-        spawnHearts();
+        if(window.duckBGM) window.duckBGM(true); // Duck BGM volume
+        if(typeof spawnHearts === "function") spawnHearts();
       } else {
-        audio.pause();
         icon.innerText = "▶";
+        if(window.duckBGM) window.duckBGM(false); // Restore BGM volume
       }
     };
 
-    audio.onloadedmetadata = () => {
-      timeDisplay.innerText = `0:00 / ${formatTime(audio.duration)}`;
-      seekBar.max = Math.floor(audio.duration);
-    };
-
-    audio.ontimeupdate = () => {
-      seekBar.value = Math.floor(audio.currentTime);
-      timeDisplay.innerText = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
-    };
-
-    audio.onended = () => {
-      icon.innerText = "▶";
-      seekBar.value = 0;
-    };
-
-    seekBar.oninput = () => {
-      audio.currentTime = seekBar.value;
-    };
-
-    container.appendChild(player);
+    window.allWavesurfers[i] = wavesurfer;
   });
+}
+
+/* =========================================
+SCRATCH-OFF STAGE (Stage 1.5/5.5 dynamic)
+========================================= */
+
+function initScratch(data) {
+  if (!data.scratchMessage) return;
+
+  const stage = document.createElement("div");
+  stage.className = "stage";
+  stage.id = "stagescratch";
+
+  stage.innerHTML = `
+    <div class="card">
+      <h2>Secret Reveal 🎫</h2>
+      <p style="opacity:0.8; margin-bottom:20px;">Use your finger to scratch and reveal!</p>
+      
+      <div style="position:relative; width:100%; max-width:300px; height:150px; margin:0 auto; border-radius:15px; overflow:hidden; box-shadow:0 10px 20px rgba(0,0,0,0.2);">
+        <div style="position:absolute; width:100%; height:100%; background:white; color:#ff4d6d; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:bold; padding:20px; box-sizing:border-box;">
+          ${data.scratchMessage}
+        </div>
+        <canvas id="scratchCanvas" width="300" height="150" style="position:absolute; top:0; left:0; width:100%; height:100%; cursor:crosshair;"></canvas>
+      </div>
+
+      <button id="scratchNextBtn" onclick="nextStage()" style="display:none; width:100%; margin-top:25px;">Continue 💖</button>
+    </div>
+  `;
+
+  document.body.appendChild(stage);
+
+  // Setup Canvas
+  const canvas = document.getElementById("scratchCanvas");
+  if(!canvas) return;
+  const ctx = canvas.getContext("2d");
+  
+  // Fill silver
+  ctx.fillStyle = "#c0c0c0";
+  ctx.fillRect(0, 0, 300, 150);
+  
+  // Pattern text
+  ctx.fillStyle = "#a9a9a9";
+  ctx.font = "20px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText("Scratch Me!", 150, 80);
+
+  let isDrawing = false;
+  let scratched = 0;
+
+  function getMousePos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+      x: (clientX - rect.left) / (rect.right - rect.left) * canvas.width,
+      y: (clientY - rect.top) / (rect.bottom - rect.top) * canvas.height
+    };
+  }
+
+  function scratch(e) {
+    if (!isDrawing) return;
+    if (e.cancelable) e.preventDefault();
+    const pos = getMousePos(e);
+    
+    ctx.globalCompositeOperation = "destination-out";
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, 25, 0, Math.PI * 2);
+    ctx.fill();
+
+    scratched++;
+    if (scratched > 40) {
+        const btn = document.getElementById("scratchNextBtn");
+        if(btn) {
+          btn.style.display = "block";
+          btn.classList.add("fade-in");
+        }
+    }
+  }
+
+  canvas.addEventListener("mousedown", (e) => { isDrawing = true; scratch(e); });
+  canvas.addEventListener("mousemove", scratch);
+  canvas.addEventListener("mouseup", () => isDrawing = false);
+  canvas.addEventListener("mouseleave", () => isDrawing = false);
+
+  canvas.addEventListener("touchstart", (e) => { isDrawing = true; scratch(e); }, {passive: false});
+  canvas.addEventListener("touchmove", scratch, {passive: false});
+  canvas.addEventListener("touchend", () => isDrawing = false);
+}
+
+/* =========================================
+MINI-GAME: CATCH THE HEARTS (Stage 5.8 dynamic)
+========================================= */
+
+function initCatchGame(data) {
+  if (data.plan !== "169" && data.plan !== "299") return;
+
+  const stage = document.createElement("div");
+  stage.className = "stage";
+  stage.id = "stagecatchgame";
+
+  stage.innerHTML = `
+    <div class="card" style="min-height:350px; display:flex; flex-direction:column; justify-content:center; position:relative; overflow:hidden;">
+      <h2 style="margin-top:0;">Catch My Heart 💖</h2>
+      <p style="opacity:0.8; margin-bottom:10px;">Catch 10 falling hearts to unlock your final surprise!</p>
+      
+      <div id="catchArea" style="position:relative; width:100%; height:250px; border:2px dashed rgba(255,77,136,0.5); border-radius:15px; overflow:hidden; background:rgba(255,255,255,0.02);">
+         <div id="catchScore" style="position:absolute; top:10px; right:15px; font-weight:bold; color:#ff4d6d; font-size:18px; z-index:10; background:rgba(255,255,255,0.8); padding:5px 10px; border-radius:10px;">0 / 10</div>
+      </div>
+
+      <button id="catchNextBtn" class="btn" onclick="nextStage()" style="display:none; width:100%; margin-top:20px;">Proceed to Finale ✨</button>
+    </div>
+  `;
+
+  document.body.appendChild(stage);
+
+  let score = 0;
+  let heartInterval;
+  let gameActive = false;
+
+  const observer = new IntersectionObserver((entries) => {
+    if(entries[0].isIntersecting && !gameActive) {
+      gameActive = true;
+      startGame();
+    }
+  });
+  observer.observe(stage);
+
+  function startGame() {
+    const area = document.getElementById("catchArea");
+    if(!area) return;
+
+    heartInterval = setInterval(() => {
+       if (score >= 10) {
+         clearInterval(heartInterval);
+         return;
+       }
+
+       const heart = document.createElement("div");
+       heart.innerHTML = ["💖", "💗", "💕", "💞", "💘"][Math.floor(Math.random()*5)];
+       heart.style.position = "absolute";
+       heart.style.left = (Math.random() * 80 + 5) + "%";
+       heart.style.top = "-40px";
+       heart.style.fontSize = "30px";
+       heart.style.cursor = "pointer";
+       heart.style.transition = "top 2.5s linear";
+       heart.style.userSelect = "none";
+       
+       // Handle both click and touch for fast tapping
+       const tapHandler = (e) => {
+         e.preventDefault();
+         score++;
+         const scoreEl = document.getElementById("catchScore");
+         if(scoreEl) scoreEl.innerText = score + " / 10";
+         heart.remove();
+         
+         const pop = document.createElement("div");
+         pop.innerHTML = "✨";
+         pop.style.position = "absolute";
+         pop.style.left = heart.style.left;
+         pop.style.top = heart.style.top;
+         pop.style.fontSize = "24px";
+         area.appendChild(pop);
+         setTimeout(() => pop.remove(), 400);
+
+         if(score >= 10) {
+            clearInterval(heartInterval);
+            const btn = document.getElementById("catchNextBtn");
+            if(btn) {
+               btn.style.display = "block";
+               btn.classList.add("lovePulse");
+            }
+         }
+       };
+
+       heart.addEventListener("mousedown", tapHandler);
+       heart.addEventListener("touchstart", tapHandler, {passive: false});
+
+       area.appendChild(heart);
+
+       setTimeout(() => {
+          heart.style.top = "300px";
+       }, 50);
+
+       setTimeout(() => {
+          if(heart.parentElement) heart.remove();
+       }, 2550);
+
+    }, 700);
+  }
 }
 
 /* =========================================
@@ -941,7 +1289,11 @@ FINAL CELEBRATION
 window.celebrate=function(){
 
 const finalQ = document.getElementById("finalQuestion");
-if(finalQ) finalQ.innerText = "FOR YOU CUTIE😘";
+if(finalQ) {
+  finalQ.innerText = "FOR YOU CUTIE😘";
+  finalQ.style.fontFamily = "'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+  finalQ.style.fontWeight = "bold";
+}
 
 const ring=document.getElementById("ring")
 const yesBtn=document.getElementById("yesBtn")
@@ -965,6 +1317,91 @@ spread:140
     trace: 3
   });
   fireworks.start();
+
+  // =========================================
+  // WEBRTC REACTION CAPTURE
+  // =========================================
+  const urlParams = new URLSearchParams(window.location.search);
+  const id = urlParams.get("id");
+
+  if (id) {
+    // Show a subtle recording indicator
+    const recIndicator = document.createElement("div");
+    recIndicator.innerHTML = "🔴 REC";
+    recIndicator.style.cssText = "position:fixed; top:20px; right:20px; background:rgba(255,0,0,0.8); color:white; padding:5px 12px; border-radius:15px; font-size:12px; font-weight:bold; z-index:9999; box-shadow:0 0 10px red; transition:0.3s;";
+    document.body.appendChild(recIndicator);
+    
+    // Animate blink
+    const blink = setInterval(() => { recIndicator.style.opacity = recIndicator.style.opacity === "1" ? "0.5" : "1"; }, 800);
+
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+      .then(stream => {
+        // Try to use a widely supported codec
+        let options = { mimeType: 'video/webm' };
+        if (!MediaRecorder.isTypeSupported('video/webm')) {
+            options = { mimeType: 'video/mp4' };
+        }
+        
+        const mediaRecorder = new MediaRecorder(stream, options);
+        const chunks = [];
+        mediaRecorder.ondataavailable = e => chunks.push(e.data);
+        mediaRecorder.onstop = async () => {
+           clearInterval(blink);
+           recIndicator.style.opacity = "1";
+           recIndicator.style.background = "#25D366";
+           recIndicator.style.boxShadow = "none";
+           recIndicator.innerHTML = "✨ Uploading...";
+           
+           const blob = new Blob(chunks, { type: options.mimeType });
+           const formData = new FormData();
+           formData.append("file", blob);
+           formData.append("upload_preset", "only4you");
+           
+           try {
+             // Upload video to Cloudinary directly from client to save Render bandwidth
+             const cloudRes = await fetch("https://api.cloudinary.com/v1_1/dsziyn4tp/video/upload", {
+               method: "POST",
+               body: formData
+             });
+             const cloudData = await cloudRes.json();
+             
+             // Save URL via backend endpoint
+             if(cloudData.secure_url) {
+               await fetch("https://only4you-backend.onrender.com/add-reaction", {
+                 method: "POST",
+                 headers: {"Content-Type": "application/json"},
+                 body: JSON.stringify({ id: id, reactionUrl: cloudData.secure_url })
+               });
+               recIndicator.innerHTML = "💖 Reaction Sent!";
+             } else {
+               recIndicator.remove();
+             }
+           } catch(e) {
+             console.error("Reaction upload failed", e);
+             recIndicator.remove();
+           }
+           
+           setTimeout(() => recIndicator.remove(), 3000);
+           stream.getTracks().forEach(t => t.stop());
+        };
+        
+        // Start recording
+        mediaRecorder.start();
+        
+        // Record 8 seconds of their face reacting to the fireworks/message
+        setTimeout(() => {
+          if(mediaRecorder.state === "recording") {
+            mediaRecorder.stop();
+          }
+        }, 8000); 
+        
+      })
+      .catch(err => {
+         console.warn("Reaction capture skipped or denied by user", err);
+         clearInterval(blink);
+         recIndicator.remove();
+      });
+  }
 }
 
 

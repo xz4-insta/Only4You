@@ -220,9 +220,20 @@ input[type="radio"]{
   <div id="voicePreview"></div>
 </div>
 
+<div class="upload-section section-visible" id="bgMusicSection">
+  <h3>Background Music 🎶</h3>
+  <button id="bgMusicInput">Upload Song 🎵</button>
+  <div id="bgMusicPreview"></div>
+</div>
+
 <div class="upload-section section-visible" id="questionSection">
   <h3>Final Question</h3>
   <input type="text" id="finalQuestion" placeholder="Will you be mine forever? 💖">
+</div>
+
+<div class="upload-section section-visible" id="scratchSection">
+  <h3>Scratch-Off Secret Message 🎫</h3>
+  <input type="text" id="scratchMessage" placeholder="A hidden secret just for them... ✨">
 </div>
 
 <div class="upload-section section-visible" id="quizSection">
@@ -250,6 +261,13 @@ input[type="radio"]{
   <option value="epic">Epic Love Story 💍</option>
   <option value="anniversary">Anniversary 🥂</option>
   <option value="birthday">Birthday 🎂</option>
+</select>
+
+<select id="theme">
+  <option value="default">Default Theme 🎀</option>
+  <option value="dark">Dark Elegance 🖤</option>
+  <option value="pastel">Pastel Dream 🌸</option>
+  <option value="neon">Neon Party 🪩</option>
 </select>
 
 <h3>Select Your Plan 💎</h3>
@@ -343,7 +361,9 @@ window.goToPreview = function(){
   const receiver = document.getElementById("receiver").value;
   const message = document.getElementById("message").value;
   const template = document.getElementById("template").value;
+  const theme = document.getElementById("theme")?.value || "default";
   let finalQuestion = document.getElementById("finalQuestion").value;
+  const scratchMessage = document.getElementById("scratchMessage")?.value || "";
 
   if(!sender || !receiver || !message){
     alert("Please fill all required fields 💕");
@@ -394,11 +414,14 @@ window.goToPreview = function(){
     receiver,
     message,
     template,
+    theme,
     plan,
     finalQuestion,
     quiz,
+    scratchMessage,
     images: window.getUploadedImages ? window.getUploadedImages() : [],
-    voices: window.getUploadedVoice ? [window.getUploadedVoice()] : []
+    voices: window.getUploadedVoice ? [window.getUploadedVoice()] : [],
+    bgMusic: window.getUploadedBgMusic ? window.getUploadedBgMusic() : null
   };
 
   localStorage.setItem("only4you_story", JSON.stringify(story));
@@ -408,7 +431,9 @@ window.goToPreview = function(){
     "&receiver=" + encodeURIComponent(receiver) +
     "&message=" + encodeURIComponent(message) +
     "&template=" + template +
+    "&theme=" + theme +
     "&plan=" + plan +
+    "&scratchMessage=" + encodeURIComponent(scratchMessage) +
     "&finalQuestion=" + encodeURIComponent(finalQuestion);
 
 };
@@ -442,6 +467,7 @@ window.selectPlan = function(element){
 const imageSection    = document.getElementById("imageSection");
 const voiceSection    = document.getElementById("voiceSection");
 const questionSection = document.getElementById("questionSection");
+const scratchSection  = document.getElementById("scratchSection");
 const quizSection     = document.getElementById("quizSection");
 
 function hide(section){
@@ -487,6 +513,7 @@ window.applyStageLock = function(){
   hide(imageSection);
   hide(voiceSection);
   hide(questionSection);
+  hide(scratchSection);
   hide(quizSection);
 
   // Respect plan boundaries even for admin, but allow them to unlock anything for free (logic already exists in preview)
@@ -494,6 +521,7 @@ window.applyStageLock = function(){
   if(plan === "48"){
     show(questionSection);
     addLock(imageSection,"89");
+    addLock(scratchSection,"89");
     addLock(voiceSection,"169");
     addLock(quizSection,"299");
   }
@@ -501,6 +529,7 @@ window.applyStageLock = function(){
   if(plan === "89"){
     show(imageSection);
     show(questionSection);
+    show(scratchSection);
     addLock(voiceSection,"169");
     addLock(quizSection,"299");
   }
@@ -508,6 +537,7 @@ window.applyStageLock = function(){
   if(plan === "169"){
     show(imageSection);
     show(voiceSection);
+    show(scratchSection);
     show(questionSection);
     addLock(quizSection,"299");
   }
@@ -515,6 +545,7 @@ window.applyStageLock = function(){
   if(plan === "299"){
     show(imageSection);
     show(voiceSection);
+    show(scratchSection);
     show(questionSection);
     show(quizSection);
   }
