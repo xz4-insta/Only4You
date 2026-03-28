@@ -8,8 +8,8 @@ const db = admin.firestore();
 
 // ⚠️ PUT YOUR TEST KEYS HERE (ONLY LOCALLY)
 const razorpay = new Razorpay({
-  key_id: "rzp_live_STM1YCZMjmq7c0",
-  key_secret: "v6XrpR6RmkTDM68qrl3X38a8",
+  key_id: "rzp_live_SWd5OBd7ekZ0DB",
+  key_secret: "8Atw0zOfJTU1dW9K70gGwZ47",
 });
 
 exports.createOrder = functions.https.onRequest((req, res) => {
@@ -68,7 +68,7 @@ exports.createSurprise = functions.https.onRequest((req, res) => {
       // 3. Razorpay Signature Verification (Paid Flow)
       if (!isVerified && razorpay_payment_id && razorpay_order_id && razorpay_signature) {
         const crypto = require("crypto");
-        const hmac = crypto.createHmac("sha256", "v6XrpR6RmkTDM68qrl3X38a8");
+        const hmac = crypto.createHmac("sha256", "8Atw0zOfJTU1dW9K70gGwZ47");
         hmac.update(razorpay_order_id + "|" + razorpay_payment_id);
         const generatedSignature = hmac.digest("hex");
 
