@@ -125,14 +125,36 @@ INIT ENGINE
 export function initEpicInteractions(data){
 window.storyData = data
 
+  // Ensure full journey and mock data if in preview mode
+  const isPreview = new URLSearchParams(window.location.search).get('preview') === '1';
+  if (isPreview) {
+    window.allowedStages = [1, 2, 3, 4, 5, 6]; // Force full flow for carousel
+    
+    // Inject Mock Data if empty
+    if (!data.message) data.message = "You are the most special person in my life. Every moment with you is a gift! ❤️";
+    if (!data.images || data.images.length === 0) {
+      data.images = [
+        "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=600&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1522673607200-164883eecd0c?q=80&w=600&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1494774157365-9e04c6720e47?q=80&w=600&auto=format&fit=crop"
+      ];
+    }
+    if (!data.quiz || data.quiz.length === 0) {
+      data.quiz = [
+        { question: "Where was our first date? ☕", options: ["Coffee Shop", "Park", "Cinema", "Beach"] },
+        { question: "What's my favorite thing about you? ✨", options: ["Smile", "Kindness", "Humor", "Everything!"] }
+      ];
+    }
+  }
+
   if (data.scratchMessage) {
-    const idx = window.allowedStages.indexOf(6);
-    if (idx !== -1) window.allowedStages.splice(idx, 0, "scratch");
+    const idx = window.allowedStages?.indexOf(6);
+    if (idx !== -1 && idx !== undefined) window.allowedStages.splice(idx, 0, "scratch");
   }
 
   if (data.plan === "169" || data.plan === "299") {
-    const idx = window.allowedStages.indexOf(6);
-    if (idx !== -1) window.allowedStages.splice(idx, 0, "catchgame");
+    const idx = window.allowedStages?.indexOf(6);
+    if (idx !== -1 && idx !== undefined) window.allowedStages.splice(idx, 0, "catchgame");
   }
 
   initProgressDots()
@@ -148,6 +170,43 @@ window.storyData = data
 
 showStage(1)
 
+  // Start Auto-Cycle if in preview mode
+  if (isPreview) {
+    startPreviewAutoCycle();
+  }
+
+}
+
+function startPreviewAutoCycle() {
+  setInterval(() => {
+    cycleNextStage();
+  }, 3500); // 3.5s to account for transition time
+}
+
+function cycleNextStage() {
+  const flow = window.allowedStages || [1, 2, 3, 4, 5, 6];
+  const index = flow.indexOf(currentStage);
+  
+  if (index === -1) return;
+  
+  let next = flow[index + 1];
+  
+  // If at the end, loop back to the first stage
+  if (!next) {
+    next = flow[0];
+  }
+
+  tvStaticTransition(() => {
+    showStage(next);
+    
+    // Extra fix: If we loop back to Stage 1, click to open the letter automatically
+    if (next === 1) {
+      setTimeout(() => {
+        const letter = document.getElementById("letter");
+        if (letter) letter.click();
+      }, 1000);
+    }
+  });
 }
 
 
