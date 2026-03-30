@@ -223,7 +223,7 @@ input[type="radio"]{
  
 <div class="container">
 
-<div class="logo" onclick="window.location.href='index.html'">
+<div class="logo">
   <img src="assets/logo.png" alt="Only4You" style="height: 60px; vertical-align: middle;">
 </div>
 
@@ -595,6 +595,36 @@ if(isAdmin) {
     if(btn) btn.innerText = "✨ Creator: Preview and Generate";
 }
 
+// 7-Tap Creator Activation
+let tapCount = 0;
+let lastTapTime = 0;
+
+document.querySelector(".logo").addEventListener("click", async () => {
+  const now = Date.now();
+  if (now - lastTapTime > 4000) tapCount = 0;
+  tapCount++;
+  lastTapTime = now;
+
+  if (tapCount === 7) {
+    tapCount = 0; 
+    const code = prompt("Enter Creator Access Code ✨");
+    if(!code) return;
+    
+    // Hash for ONLY4YOU access
+    const msgUint8 = new TextEncoder().encode(code.toUpperCase());
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+    const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+    if(hashHex === "0005e3b89a5c213d3501e4b119f4d8ee12b67c1e840c3a168f5cb82dafd27c96"){
+       const sessionData = { active: true, expiry: Date.now() + (3600 * 1000) };
+       localStorage.setItem("_u4y_preview_lock", JSON.stringify(sessionData));
+       alert("Creator Preview Mode Activated! ✨ Enjoy building your surprises.");
+       location.reload();
+    } else {
+       alert("Access Denied: Incorrect Code 🔒");
+    }
+  }
+});
 </script>
  <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
 <script type="module" src="js/uploadEngine.js"></script>
