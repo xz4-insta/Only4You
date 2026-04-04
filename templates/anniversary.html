@@ -7,6 +7,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/fireworks-js@2/dist/index.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script src="../js/optimization.js" type="module"></script>
 
 <style>
 body {
@@ -70,30 +71,7 @@ body {
   overflow: hidden;
 }
 
-@keyframes shimmer {
-  0% { left: -150%; }
-  100% { left: 150%; }
-}
 
-.shimmer-effect {
-  position: absolute;
-  top: 0;
-  left: -150%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    120deg, 
-    transparent 30%, 
-    rgba(255, 255, 255, 0.05) 45%, 
-    rgba(255, 255, 255, 0.2) 50%, 
-    rgba(255, 255, 255, 0.05) 55%, 
-    transparent 70%
-  );
-  animation: shimmer 6s infinite;
-  pointer-events: none;
-  z-index: 10;
-  transform: skewX(-20deg);
-}
 
 @keyframes subtleGlow {
   from { box-shadow: 0 15px 40px rgba(93, 27, 16, 0.3); }
@@ -155,7 +133,9 @@ button:hover {
   overflow: hidden;
   transition: transform .4s ease;
   border: 1px solid rgba(255,255,255,0.2);
+  perspective: 600px;
 }
+
 
 .envelope:hover {
   transform: scale(1.05);
@@ -367,6 +347,18 @@ button:hover {
   transform: scale(1.2);
 }
 
+.performance-optimized body {
+  animation: none !important;
+  background: #1a0f0a !important;
+}
+.performance-optimized .card {
+  animation: fadeUp 0.5s ease forwards !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
+  backdrop-filter: none !important;
+}
+.performance-optimized .floatHeart {
+  display: none !important;
+}
 </style>
 </head>
 
@@ -466,6 +458,8 @@ document.addEventListener("DOMContentLoaded",()=>{
     images: saved.images || [],
     voices: saved.voices || [],
     quiz: saved.quiz || [],
+    bgMusic: saved.bgMusic,
+    plan: saved.plan,
     finalQuestion: saved.finalQuestion || "Will you spend forever with me? 💍"
   });
 });

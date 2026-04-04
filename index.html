@@ -18,6 +18,9 @@
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image">
 
+<!-- Performance Optimization -->
+<script src="js/optimization.js" type="module"></script>
+
 <style>
 html{
   scroll-behavior:smooth;
@@ -57,6 +60,8 @@ body{
   cursor:pointer;
   transition:0.2s;
   user-select:none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 .logo img {
   height: 55px;
@@ -447,6 +452,53 @@ body{
   .price-card,
   .feature{ width:90%; }
 }
+
+@media(max-width:480px){
+  .nav-arrow {
+    padding: 10px 14px;
+    font-size: 1.1rem;
+  }
+  .left-arrow { left: 2%; }
+  .right-arrow { right: 2%; }
+  .carousel {
+    width: 280px; 
+    height: 450px;
+  }
+  .carousel-item iframe {
+    width: 320px; /* Adjust iframe scale for smaller container */
+    height: 512px;
+    transform: scale(0.875);
+  }
+  .active-template-info h3 {
+    font-size: 1.8rem;
+  }
+}
+
+/* ================= PERFORMANCE OPTIMIZATIONS ================= */
+.performance-optimized .navbar, 
+.performance-optimized .mobile-menu {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: white !important;
+}
+.performance-optimized .mobile-menu {
+  background: #121212 !important;
+}
+.performance-optimized .hero h1 {
+  animation: none !important;
+}
+.performance-optimized button,
+.performance-optimized .epic-btn {
+  animation: none !important;
+}
+.performance-optimized .heart,
+.performance-optimized .sparkle,
+.performance-optimized #pinkCat {
+  display: none !important;
+}
+.performance-optimized .carousel-item {
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1) !important;
+}
 </style>
 </head>
 
@@ -454,7 +506,7 @@ body{
 
 <div class="navbar">
   <div class="logo">
-    <img src="assets/logo.png" alt="Only4You" style="vertical-align: middle;">
+    <img src="assets/logo.png" alt="Only4You" style="vertical-align: middle;" >
   </div>
 
   <div class="nav-links">
@@ -493,19 +545,24 @@ body{
     <button class="nav-arrow right-arrow" onclick="nextTemplate()">&#10095;</button>
     <div class="carousel" id="templateCarousel">
       <div class="carousel-item" onclick="rotateTo(0)">
-        <iframe src="templates/valentine.html?preview=1" loading="lazy"></iframe>
+        <div class="iframe-placeholder" style="width:100%; height:100%; background:#f0f0f0; display:flex; align-items:center; justify-content:center;">Loading...</div>
+        <iframe data-src="templates/valentine.html?preview=1"  style="display:none;"></iframe>
       </div>
       <div class="carousel-item" onclick="rotateTo(1)">
-        <iframe src="templates/forgiveness.html?preview=1" loading="lazy"></iframe>
+        <div class="iframe-placeholder" style="width:100%; height:100%; background:#f0f0f0; display:flex; align-items:center; justify-content:center;">Loading...</div>
+        <iframe data-src="templates/forgiveness.html?preview=1"  style="display:none;"></iframe>
       </div>
       <div class="carousel-item" onclick="rotateTo(2)">
-        <iframe src="templates/epic.html?preview=1" loading="lazy"></iframe>
+        <div class="iframe-placeholder" style="width:100%; height:100%; background:#f0f0f0; display:flex; align-items:center; justify-content:center;">Loading...</div>
+        <iframe data-src="templates/epic.html?preview=1"  style="display:none;"></iframe>
       </div>
       <div class="carousel-item" onclick="rotateTo(3)">
-        <iframe src="templates/anniversary.html?preview=1" loading="lazy"></iframe>
+        <div class="iframe-placeholder" style="width:100%; height:100%; background:#f0f0f0; display:flex; align-items:center; justify-content:center;">Loading...</div>
+        <iframe data-src="templates/anniversary.html?preview=1"  style="display:none;"></iframe>
       </div>
       <div class="carousel-item" onclick="rotateTo(4)">
-        <iframe src="templates/birthday.html?preview=1" loading="lazy"></iframe>
+        <div class="iframe-placeholder" style="width:100%; height:100%; background:#f0f0f0; display:flex; align-items:center; justify-content:center;">Loading...</div>
+        <iframe data-src="templates/birthday.html?preview=1"  style="display:none;"></iframe>
       </div>
     </div>
   </div>
@@ -621,6 +678,9 @@ window.selectEpicTemplate = function(){
     window.location.href = "create.html?template=epic";
   }
 }
+// Declare isLowEnd FIRST before any usage
+const isLowEnd = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (navigator.deviceMemory && navigator.deviceMemory <= 4);
+
 const cat=document.getElementById("pinkCat");
 function moveCat(){
   const x=Math.random()*(window.innerWidth-50);
@@ -629,26 +689,31 @@ function moveCat(){
   cat.style.left=x+"px";
   cat.style.top=y+"px";
 }
-setInterval(moveCat,2000);
-moveCat();
 
-for(let i=0;i<12;i++){
-  const heart=document.createElement("div");
-  heart.className="heart";
-  heart.innerHTML="💖";
-  heart.style.left=Math.random()*100+"%";
-  heart.style.bottom="-20px";
-  heart.style.animationDuration=(6+Math.random()*4)+"s";
-  document.body.appendChild(heart);
+if (!isLowEnd) {
+  setInterval(moveCat,2000);
+  moveCat();
 }
 
-for(let i=0;i<20;i++){
-  const spark=document.createElement("div");
-  spark.className="sparkle";
-  spark.innerHTML="✨";
-  spark.style.left=Math.random()*100+"%";
-  spark.style.top=Math.random()*100+"%";
-  document.body.appendChild(spark);
+if (!isLowEnd) {
+  for(let i=0; i<12; i++){
+    const heart=document.createElement("div");
+    heart.className="heart";
+    heart.innerHTML="💖";
+    heart.style.left=Math.random()*100+"%";
+    heart.style.bottom="-20px";
+    heart.style.animationDuration=(6+Math.random()*4)+"s";
+    document.body.appendChild(heart);
+  }
+
+  for(let i=0; i<20; i++){
+    const spark=document.createElement("div");
+    spark.className="sparkle";
+    spark.innerHTML="✨";
+    spark.style.left=Math.random()*100+"%";
+    spark.style.top=Math.random()*100+"%";
+    document.body.appendChild(spark);
+  }
 }
 /* ================= 3D CAROUSEL LOGIC ================= */
 const items = document.querySelectorAll(".carousel-item");
@@ -691,14 +756,33 @@ if(items.length > 0) {
     document.getElementById("activeDesc").innerText = templateData[normalizedIndex].desc;
     
     items.forEach((item, i) => {
+      const iframe = item.querySelector("iframe");
+      const placeholder = item.querySelector(".iframe-placeholder");
+
       if(i === normalizedIndex) {
         item.style.opacity = "1";
         item.style.boxShadow = "0 0 50px rgba(231,84,128,0.5)";
         item.style.border = "4px solid #E75480";
+        
+        // Load active iframe
+        if (iframe && iframe.getAttribute("data-src")) {
+          iframe.src = iframe.getAttribute("data-src");
+          iframe.removeAttribute("data-src");
+          iframe.style.display = "block";
+          if (placeholder) placeholder.style.display = "none";
+        }
       } else {
         item.style.opacity = "0.3";
         item.style.boxShadow = "none";
         item.style.border = "4px solid #fff";
+        
+        // Unload inactive iframes (Only keep the active one loaded to save RAM)
+        if (iframe && iframe.src && iframe.src !== "about:blank") {
+          iframe.setAttribute("data-src", iframe.src);
+          iframe.src = "about:blank"; // Unload
+          iframe.style.display = "none";
+          if (placeholder) placeholder.style.display = "flex";
+        }
       }
     });
   }
@@ -732,28 +816,77 @@ document.querySelector(".logo").addEventListener("click", async () => {
   tapCount++;
   lastTapTime = now;
 
-  // Trigger on 7 quick taps
-  if (tapCount === 7) {
+  // Trigger on 5 quick taps
+  if (tapCount === 5) {
     tapCount = 0; 
-
-    const code = prompt("Enter Creator Access Code ✨");
-    if(!code) return;
     
-    const msgUint8 = new TextEncoder().encode(code.toUpperCase());
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
-    const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+    // Inject Custom Prompt Modal
+    const promptModal = document.createElement("div");
+    promptModal.style.position = "fixed";
+    promptModal.style.top = "0"; promptModal.style.left = "0";
+    promptModal.style.width = "100%"; promptModal.style.height = "100%";
+    promptModal.style.background = "rgba(0,0,0,0.8)";
+    promptModal.style.display = "flex"; promptModal.style.alignItems = "center"; promptModal.style.justifyContent = "center";
+    promptModal.style.zIndex = "9999";
+    
+    promptModal.innerHTML = `
+      <div style="background:white; padding:30px; border-radius:20px; text-align:center; box-shadow:0 10px 30px rgba(255,105,180,0.5);">
+         <h3 style="margin-top:0; color:#E75480;">Unlock Creator Mode ✨</h3>
+         <input type="text" id="creatorCodeInput" placeholder="Enter Access Code..." style="padding:10px; width:80%; border-radius:10px; border:2px solid #E75480; text-align:center; font-weight:bold; margin-bottom:20px;"><br>
+         <button id="creatorSubmitBtn" style="background:linear-gradient(90deg,#ff4d6d,#ff8fab); color:white; border:none; padding:10px 20px; border-radius:15px; cursor:pointer; font-weight:bold; margin-right:10px;">Unlock</button>
+         <button id="creatorCancelBtn" style="background:#ddd; color:#333; border:none; padding:10px 20px; border-radius:15px; cursor:pointer; font-weight:bold;">Cancel</button>
+      </div>
+    `;
+    document.body.appendChild(promptModal);
+    
+    const inputField = document.getElementById("creatorCodeInput");
+    inputField.focus();
 
-    // MASTER_HASH for 'ONLY4YOU'
-    if(hashHex === "0005e3b89a5c213d3501e4b119f4d8ee12b67c1e840c3a168f5cb82dafd27c96"){
-       const sessionData = { active: true, expiry: Date.now() + (3600 * 1000) };
-       localStorage.setItem("_u4y_preview_lock", JSON.stringify(sessionData));
-       alert("Creator Preview Mode Activated! ✨ Enjoy building your surprises.");
-       location.reload();
-    } else {
-       alert("Access Denied: Incorrect Code 🔒");
-    }
+    document.getElementById("creatorCancelBtn").onclick = () => promptModal.remove();
+
+    document.getElementById("creatorSubmitBtn").onclick = async () => {
+      const code = inputField.value.trim();
+      promptModal.remove();
+      if(!code) return;
+
+      // Default hash check
+      let hashHex = "";
+      try {
+        if (window.crypto && window.crypto.subtle) {
+          const msgUint8 = new TextEncoder().encode(code.toUpperCase());
+          const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+          hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+      } catch(e) {
+        console.warn("Crypto API unavailable - using fallback mode.");
+      }
+      
+      // Fallback if hashHex is still empty (due to missing API or caught error)
+      if (!hashHex && code.toUpperCase() === "ONLY4YOU") {
+         hashHex = "0005e3b89a5c213d3501e4b119f4d8ee12b67c1e840c3a168f5cb82dafd27c96";
+      }
+
+      // MASTER_HASH for 'ONLY4YOU'
+      if(hashHex === "0005e3b89a5c213d3501e4b119f4d8ee12b67c1e840c3a168f5cb82dafd27c96"){
+         const sessionData = { active: true, expiry: Date.now() + (3600 * 1000) };
+         localStorage.setItem("_u4y_preview_lock", JSON.stringify(sessionData));
+         
+         const successMsg = document.createElement("div");
+         successMsg.innerText = "Creator Preview Mode Activated! ✨ Enjoy building your surprises.";
+         successMsg.style.cssText = "position:fixed; top:20px; left:50%; transform:translateX(-50%); background:linear-gradient(90deg, #FFD700, #FF69B4); color:black; padding:15px 30px; border-radius:30px; font-weight:bold; z-index:10000;";
+         document.body.appendChild(successMsg);
+         setTimeout(() => location.reload(), 1500);
+      } else {
+         const failMsg = document.createElement("div");
+         failMsg.innerText = "Access Denied: Incorrect Code 🔒";
+         failMsg.style.cssText = "position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#ff4d6d; color:white; padding:15px 30px; border-radius:30px; font-weight:bold; z-index:10000;";
+         document.body.appendChild(failMsg);
+         setTimeout(() => failMsg.remove(), 2500);
+      }
+    };
   }
 });
+
 
 function showAdminBar() {
   let bar = document.getElementById("adminBar");
@@ -779,6 +912,15 @@ if(checkLock) {
     if(data.active && data.expiry > Date.now()) showAdminBar();
   } catch(e){}
 }
+</script>
+
+<script type="module">
+  import { initCarousel, rotateTo, prevTemplate, nextTemplate, goToCreateTemplate } from "./js/main.js";
+  window.rotateTo = (n) => rotateTo(n);
+  window.prevTemplate = prevTemplate;
+  window.nextTemplate = nextTemplate;
+  window.selectActiveTemplate = goToCreateTemplate;
+  initCarousel();
 </script>
 
 </body>

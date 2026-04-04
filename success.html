@@ -140,10 +140,12 @@ flex-direction:column;
 align-items:center;
 gap:15px;
 padding:30px 20px;
-background:rgba(255,255,255,0.08);
-backdrop-filter:blur(20px);
+background:rgba(255,255,255,0.4);
+backdrop-filter:blur(15px);
+-webkit-backdrop-filter:blur(15px);
 border-radius:25px;
-box-shadow:0 0 40px rgba(255,215,0,0.3);
+border: 1px solid rgba(255, 255, 255, 0.3);
+box-shadow:0 8px 32px rgba(255,215,0,0.2);
 max-width:90%;
 text-align:center;
 }
@@ -214,7 +216,7 @@ to{transform:translateY(110vh) rotate(360deg);}
 
 <script type="module">
 
-import { applyStageLocking } from "./js/stageEngine.js";
+import { initEpicInteractions } from "./js/stageEngine.js";
 import { applyPlanFeatures } from "./js/planEngine.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
@@ -251,20 +253,44 @@ document.body.innerHTML="<h2>Invalid Link 💔</h2>";
 throw new Error("No ID");
 }
 
-const ref=doc(db,"surprises",id);
-const snap=await getDoc(ref);
+let data = {};
+let plan = "299";
+let ref = null; // Declare ref at top level so reaction system can access it
 
-if(!snap.exists()){
-document.body.innerHTML="<h2>Not Found 💔</h2>";
-throw new Error("Not Found");
+if (isOwner && id === "MOCK_ID") {
+  // Bypassed for Creator Preview or Carousel Preview Mode
+  data = {
+    template: params.get("template") || "valentine",
+    plan: "299",
+    sender: "Alex",
+    receiver: "Sam",
+    message: "You are the most special person in my life. Every moment with you is a gift! ❤️"
+  };
+} else if (params.get("preview") === "1" || id === "MOCK_ID") {
+  data = {
+    template: params.get("template") || "valentine",
+    plan: "299",
+    sender: "Alex",
+    receiver: "Sam",
+    message: "You are the most special person in my life. Every moment with you is a gift! ❤️"
+  };
+} else {
+  ref = doc(db, "surprises", id); // Assign to top-level ref
+  const snap = await getDoc(ref);
+
+  if(!snap.exists()){
+    document.body.innerHTML="<h2>Not Found 💔</h2>";
+    throw new Error("Not Found");
+  }
+
+  data = snap.data();
+  plan = String(data.plan || "48");
+
+  if(!isOwner){
+    await updateDoc(ref, {views: increment(1)});
+  }
 }
 
-const data=snap.data();
-const plan=String(data.plan||"48");
-
-if(!isOwner){
-await updateDoc(ref,{views:increment(1)});
-}
 
 /* Load template */
 
@@ -297,7 +323,7 @@ document.body.appendChild(wrapper);
 
 window.currentPlan=plan;
 
-applyStageLocking(plan);
+// applyStageLocking(plan); // Removed legacy lock call
 
 import("./js/stageEngine.js").then(module=>{
 if(module.initEpicInteractions){
@@ -331,33 +357,48 @@ if(reactionTarget){
   wrapper.appendChild(reactSection);
 }
 
-document.getElementById("reactBtn").onclick=async()=>{
+let reacted = false;
+const reactBtn = document.getElementById("reactBtn");
+reactBtn.onclick = async () => {
+  if (!ref) { console.warn("No Firestore ref — preview mode?"); return; }
+  if (reacted) return;
+  reacted = true;
+  reactBtn.style.opacity = "0.6";
+  reactBtn.innerText = "💖 Love Sent!";
 
-await updateDoc(ref,{reactions:increment(1)});
+  try {
+    await updateDoc(ref, { reactions: increment(1) });
+  } catch(e) {
+    console.error("Reaction update failed:", e);
+  }
 
-for(let i=0;i<6;i++){
-const heart=document.createElement("div");
-heart.innerHTML="💖";
-heart.style.position="absolute";
-heart.style.left=(window.innerWidth/2)+"px";
-heart.style.top=(window.innerHeight/2)+"px";
-heart.style.animation="burst 1s forwards";
-document.body.appendChild(heart);
-setTimeout(()=>heart.remove(),1000);
-}
+  // Burst hearts from the button itself
+  const btnRect = reactBtn.getBoundingClientRect();
+  for (let i = 0; i < 8; i++) {
+    const heart = document.createElement("div");
+    heart.innerHTML = ["💖","💕","🌸","✨"][Math.floor(Math.random()*4)];
+    heart.style.cssText = `
+      position: fixed;
+      left: ${btnRect.left + btnRect.width/2 + (Math.random()*80-40)}px;
+      top: ${btnRect.top}px;
+      font-size: ${Math.random()*12+16}px;
+      pointer-events: none;
+      z-index: 9999;
+      animation: burst 1s forwards;
+    `;
+    document.body.appendChild(heart);
+    setTimeout(() => heart.remove(), 1000);
+  }
 };
 
-onSnapshot(ref,(docSnap)=>{
-  if(!docSnap.exists()) return;
-  const data = docSnap.data();
-  window.currentPlan = data.plan || "48";
-  window.currentTemplate = data.template || "";
-
-  const countEl=document.getElementById("reactionCount");
-  if(countEl){
-    countEl.innerText=(data.reactions||0)+" Loves";
-  }
-});
+if(ref) {
+  onSnapshot(ref, (docSnap) => {
+    if(!docSnap.exists()) return;
+    const snapData = docSnap.data();
+    const countEl = document.getElementById("reactionCount");
+    if(countEl) countEl.innerText = (snapData.reactions || 0) + " Loves";
+  });
+}
 
 }
 

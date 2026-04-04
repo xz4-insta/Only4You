@@ -20,7 +20,7 @@ body{
   position: fixed;
   top: -50px;
   pointer-events: none;
-  z-index: 9999;
+  z-index: 1; /* Lowered to prevent blocking clicks */
   font-family: serif;
   animation: fall linear forwards;
 }
@@ -68,6 +68,9 @@ input,textarea,select{
 .logo {
   margin-bottom: 20px;
   cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 input:hover, textarea:hover, select:hover{
@@ -80,7 +83,7 @@ input:focus, textarea:focus, select:focus{
 }
 
 button{
-  padding:14px 30px;
+  padding: 16px 35px; /* Slightly larger for mobile */
   border:none;
   border-radius:30px;
   background:#E75480;
@@ -89,6 +92,7 @@ button{
   margin-top:25px;
   font-size:16px;
   transition:0.3s;
+  box-shadow: 0 5px 15px rgba(231, 84, 128, 0.2);
 }
 
 button:hover{
@@ -157,6 +161,7 @@ input[type="radio"]{
   position:relative;
   transition:all 0.5s ease;
   overflow:hidden;
+  margin-bottom: 25px; /* Added spacing for mobile */
 }
 
 .section-hidden{
@@ -191,11 +196,9 @@ input[type="radio"]{
 
 .lock-overlay button{
   margin-top:15px;
-  padding:8px 18px;
+  padding:10px 20px;
   border:none;
   border-radius:20px;
-  background:linear-gradient(90deg,#ff4d6d,#ff8fab);
-  color:white;
   cursor:pointer;
   font-size:14px;
 }
@@ -205,7 +208,7 @@ input[type="radio"]{
 #pinkCat{
   position:fixed;
   font-size:40px;
-  z-index:999;
+  z-index: 1; /* Lowered */
   pointer-events:none;
 }
 
@@ -231,6 +234,22 @@ input[type="radio"]{
   to{ opacity:1; transform:scale(1.3); }
 }
 
+.premium-shimmer {
+  background: linear-gradient(-45deg, #ff4d6d, #ff8fab, #ff4d6d, #ff8fab) !important;
+  background-size: 400% 400% !important;
+  animation: shimmerGrad 3s ease infinite !important;
+  color: white !important;
+  border: none !important;
+  font-weight: bold !important;
+  box-shadow: 0 4px 15px rgba(231, 84, 128, 0.4) !important;
+}
+
+@keyframes shimmerGrad {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
 .admin-bar {
   background: linear-gradient(90deg, #FFD700, #FF69B4);
   color: #000;
@@ -254,7 +273,7 @@ input[type="radio"]{
 <div class="container">
 
 <div class="logo">
-  <img src="assets/logo.png" alt="Only4You" style="height: 100px; width:100px; object-fit: contain; border-radius: 50%; background: white; padding: 5px; box-shadow: 0 0 20px rgba(255, 255, 255, 0.3); transition: 0.3s;">
+  <img src="assets/logo.png" alt="Only4You" style="height: 100px; width:100px; object-fit: contain; border-radius: 50%; background: white; padding: 5px; box-shadow: 0 0 20px rgba(255, 255, 255, 0.3); transition: 0.3s;" loading="lazy">
 </div>
 
 <h2>Create Your Love Surprise 💕</h2>
@@ -364,7 +383,7 @@ input[type="radio"]{
   </ul>
 </div>
 
-<button id="previewBtn" onclick="goToPreview()">Preview 💕</button>
+<button id="previewBtn" class="premium-shimmer" onclick="goToPreview()">Preview 💕</button>
 
 </div>
 
@@ -555,7 +574,7 @@ function addLock(section, price){
   overlay.className = "lock-overlay";
   overlay.innerHTML = `
     🔒 Unlock in ₹${price} Plan
-    <button onclick="autoUpgrade('${price}')">Upgrade 💎</button>
+    <button class="premium-shimmer" onclick="autoUpgrade('${price}')" style="margin-top:15px; padding:10px 20px; border-radius:20px;">Upgrade 💎</button>
   `;
   section.appendChild(overlay);
 }
@@ -585,7 +604,26 @@ window.applyStageLock = function(){
   hide(scratchSection);
   hide(quizSection);
 
-  // Respect plan boundaries even for admin, but allow them to unlock anything for free (logic already exists in preview)
+  // If Admin mode is active, completely unlock ALL sections!
+  const checkLock = localStorage.getItem("_u4y_preview_lock");
+  let isAdmin = false;
+  if (checkLock) {
+    try {
+      const lockData = JSON.parse(checkLock);
+      if (lockData.active && lockData.expiry > Date.now()) isAdmin = true;
+    } catch(e){}
+  }
+
+  if (isAdmin || plan === "299") {
+    show(imageSection);
+    show(voiceSection);
+    show(scratchSection);
+    show(questionSection);
+    show(quizSection);
+    return; // Stop here, everything is unlocked!
+  }
+
+  // Normal User Locks
 
   if(plan === "48"){
     show(questionSection);
@@ -658,25 +696,73 @@ document.querySelector(".logo").addEventListener("click", async () => {
   if (now - lastTapTime > 4000) tapCount = 0;
   tapCount++;
   lastTapTime = now;
-
-  if (tapCount === 7) {
+  if (tapCount === 5) {
     tapCount = 0; 
-    const code = prompt("Enter Creator Access Code ✨");
-    if(!code) return;
-    
-    // Hash for ONLY4YOU access
-    const msgUint8 = new TextEncoder().encode(code.toUpperCase());
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
-    const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
 
-    if(hashHex === "0005e3b89a5c213d3501e4b119f4d8ee12b67c1e840c3a168f5cb82dafd27c96"){
-       const sessionData = { active: true, expiry: Date.now() + (3600 * 1000) };
-       localStorage.setItem("_u4y_preview_lock", JSON.stringify(sessionData));
-       alert("Creator Preview Mode Activated! ✨ Enjoy building your surprises.");
-       location.reload();
-    } else {
-       alert("Access Denied: Incorrect Code 🔒");
-    }
+    // Inject Custom Prompt Modal
+    const promptModal = document.createElement("div");
+    promptModal.style.position = "fixed";
+    promptModal.style.top = "0"; promptModal.style.left = "0";
+    promptModal.style.width = "100%"; promptModal.style.height = "100%";
+    promptModal.style.background = "rgba(0,0,0,0.8)";
+    promptModal.style.display = "flex"; promptModal.style.alignItems = "center"; promptModal.style.justifyContent = "center";
+    promptModal.style.zIndex = "9999";
+    
+    promptModal.innerHTML = `
+      <div style="background:white; padding:30px; border-radius:20px; text-align:center; box-shadow:0 10px 30px rgba(255,105,180,0.5);">
+         <h3 style="margin-top:0; color:#E75480;">Unlock Creator Mode ✨</h3>
+         <input type="text" id="creatorCodeInput" placeholder="Enter Access Code..." style="padding:10px; width:80%; border-radius:10px; border:2px solid #E75480; text-align:center; font-weight:bold; margin-bottom:20px;"><br>
+         <button id="creatorSubmitBtn" style="background:linear-gradient(90deg,#ff4d6d,#ff8fab); color:white; border:none; padding:10px 20px; border-radius:15px; cursor:pointer; font-weight:bold; margin-right:10px;">Unlock</button>
+         <button id="creatorCancelBtn" style="background:#ddd; color:#333; border:none; padding:10px 20px; border-radius:15px; cursor:pointer; font-weight:bold;">Cancel</button>
+      </div>
+    `;
+    document.body.appendChild(promptModal);
+    
+    const inputField = document.getElementById("creatorCodeInput");
+    inputField.focus();
+
+    document.getElementById("creatorCancelBtn").onclick = () => promptModal.remove();
+
+    document.getElementById("creatorSubmitBtn").onclick = async () => {
+      const code = inputField.value.trim();
+      promptModal.remove();
+      if(!code) return;
+
+      // Default hash check
+      let hashHex = "";
+      try {
+        if (window.crypto && window.crypto.subtle) {
+          const msgUint8 = new TextEncoder().encode(code.toUpperCase());
+          const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+          hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+      } catch(e) {
+        console.warn("Crypto API unavailable - using fallback mode.");
+      }
+      
+      // Fallback if hashHex is still empty (due to missing API or caught error)
+      if (!hashHex && code.toUpperCase() === "ONLY4YOU") {
+         hashHex = "0005e3b89a5c213d3501e4b119f4d8ee12b67c1e840c3a168f5cb82dafd27c96";
+      }
+
+      // MASTER_HASH for 'ONLY4YOU'
+      if(hashHex === "0005e3b89a5c213d3501e4b119f4d8ee12b67c1e840c3a168f5cb82dafd27c96"){
+         const sessionData = { active: true, expiry: Date.now() + (3600 * 1000) };
+         localStorage.setItem("_u4y_preview_lock", JSON.stringify(sessionData));
+         
+         const successMsg = document.createElement("div");
+         successMsg.innerText = "Creator Preview Mode Activated! ✨ Enjoy building your surprises.";
+         successMsg.style.cssText = "position:fixed; top:20px; left:50%; transform:translateX(-50%); background:linear-gradient(90deg, #FFD700, #FF69B4); color:black; padding:15px 30px; border-radius:30px; font-weight:bold; z-index:10000;";
+         document.body.appendChild(successMsg);
+         setTimeout(() => location.reload(), 1500);
+      } else {
+         const failMsg = document.createElement("div");
+         failMsg.innerText = "Access Denied: Incorrect Code 🔒";
+         failMsg.style.cssText = "position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#ff4d6d; color:white; padding:15px 30px; border-radius:30px; font-weight:bold; z-index:10000;";
+         document.body.appendChild(failMsg);
+         setTimeout(() => failMsg.remove(), 2500);
+      }
+    };
   }
 });
 

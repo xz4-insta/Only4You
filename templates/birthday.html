@@ -7,6 +7,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/fireworks-js@2/dist/index.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script src="../js/optimization.js" type="module"></script>
 
 <style>
 body {
@@ -112,7 +113,9 @@ button:hover {
   overflow: hidden;
   transition: transform .4s ease;
   border: 1px solid white;
+  perspective: 600px;
 }
+
 
 .envelope:hover {
   transform: scale(1.03);
@@ -318,6 +321,16 @@ button:hover {
   transform: scale(1.2);
 }
 
+.performance-optimized body {
+  animation: none !important;
+}
+.performance-optimized .card {
+  animation: fadeIn 0.5s ease-out forwards !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05) !important;
+}
+.performance-optimized .floatHeart {
+  display: none !important;
+}
 </style>
 </head>
 
@@ -417,6 +430,8 @@ document.addEventListener("DOMContentLoaded",()=>{
     images: saved.images || [],
     voices: saved.voices || [],
     quiz: saved.quiz || [],
+    bgMusic: saved.bgMusic,
+    plan: saved.plan,
     finalQuestion: saved.finalQuestion || "Did you love your surprise? 🎁"
   });
 });

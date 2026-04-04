@@ -96,28 +96,7 @@ if(plan === "48"){
   =================================================== */
 
  if(plan==="169" || plan==="299"){
-
-  const audio=document.createElement("audio");
-  audio.src="music/romantic.mp3";
-  audio.loop=true;
-  audio.volume=0;
-
-  audio.addEventListener("error", ()=>{
-    console.warn("Music file not found or unsupported.");
-  });
-
-  document.body.appendChild(audio);
-
-  document.addEventListener("click",()=>{
-    audio.play().catch(()=>{});
-    let fade=setInterval(()=>{
-      if(audio.volume<0.3){
-        audio.volume+=0.01;
-      }else{
-        clearInterval(fade);
-      }
-    },100);
-  },{once:true});
+  // BGM handling moved to stageEngine.js to prevent duplication and enable ducking.
 }
 
 if(plan === "299"){

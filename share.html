@@ -3,396 +3,329 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>3D Shareable QR Generator 💖</title>
+<title>Share Your Surprise 💖 | Only4You</title>
+<meta name="description" content="Share your romantic surprise with your loved one.">
 
-<!-- Libraries -->
 <script src="https://cdn.jsdelivr.net/npm/qrious/dist/qrious.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<!-- Vanilla-tilt for 3D effect -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
   :root {
     --primary: #ff4d88;
     --secondary: #ff1f5a;
     --dark: #0f0f13;
-    --glass: rgba(255, 255, 255, 0.05);
-    --glass-border: rgba(255, 255, 255, 0.1);
+    --card-bg: rgba(22, 12, 18, 0.78);
+    --glass-border: rgba(255, 100, 150, 0.18);
   }
 
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
   body {
-    margin: 0;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    background: radial-gradient(circle at center, #1a0b16 0%, var(--dark) 100%);
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    color: white;
-    padding: 2rem;
-    box-sizing: border-box;
+    justify-content: flex-start;
+    background: radial-gradient(ellipse at 20% 20%, #2a0a1f 0%, #0f0f13 60%);
+    font-family: 'Inter', system-ui, sans-serif;
+    color: #fff;
+    padding: 2rem 1rem 4rem;
     overflow-x: hidden;
   }
 
-  /* Animated background elements */
+  /* ── Orbs ── */
   .bg-orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(80px);
-    z-index: -1;
-    animation: float 10s ease-in-out infinite;
+    position: fixed; border-radius: 50%; filter: blur(90px);
+    z-index: 0; pointer-events: none;
+    animation: orbFloat 12s ease-in-out infinite;
   }
-  .bg-orb-1 {
-    width: 300px;
-    height: 300px;
-    background: rgba(255, 77, 136, 0.15);
-    top: 10%;
-    left: 10%;
-  }
-  .bg-orb-2 {
-    width: 400px;
-    height: 400px;
-    background: rgba(255, 31, 90, 0.1);
-    bottom: 10%;
-    right: 10%;
-    animation-delay: -5s;
+  .bg-orb-1 { width:350px;height:350px;background:rgba(255,77,136,0.12);top:-5%;left:-5%; }
+  .bg-orb-2 { width:450px;height:450px;background:rgba(180,30,90,0.09);bottom:-10%;right:-5%;animation-delay:-6s; }
+  @keyframes orbFloat {
+    0%,100% { transform:translateY(0) scale(1); }
+    50%      { transform:translateY(-25px) scale(1.06); }
   }
 
-  @keyframes float {
-    0%, 100% { transform: translateY(0) scale(1); }
-    50% { transform: translateY(-30px) scale(1.1); }
+  /* ── Header ── */
+  .page-header {
+    position: relative; z-index:1; text-align: center; margin-bottom: 1.6rem;
   }
-
-
-  /* 3D Card */
-  .card-container {
-    perspective: 1000px;
-    z-index: 10;
+  .page-header .logo {
+    font-size:1rem; font-weight:700; letter-spacing:2.5px; text-transform:uppercase;
+    background:linear-gradient(90deg,#ff4d88,#ff85a1);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+    margin-bottom:0.35rem;
   }
+  .page-header h1 { font-size:1.55rem; font-weight:700; line-height:1.2; }
+  .page-header p  { font-size:0.88rem; color:rgba(255,255,255,0.55); margin-top:0.35rem; }
+
+  /* ── Card ── */
+  .card-wrap { perspective:1200px; position:relative; z-index:1; }
 
   .card {
-    width: 380px;
-    background: rgba(25, 15, 20, 0.6);
+    width: min(380px, 92vw);
+    background: var(--card-bg);
     border-radius: 24px;
     padding: 20px;
     border: 1px solid var(--glass-border);
-    backdrop-filter: blur(20px);
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.05);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    box-shadow: 0 24px 60px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(255,255,255,0.04);
     display: flex;
     flex-direction: column;
     align-items: center;
     transform-style: preserve-3d;
-  }
-
-  .scene {
     position: relative;
-    width: 100%;
-    border-radius: 16px;
     overflow: hidden;
-    transform: translateZ(40px);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
   }
 
-  .scene img {
+  /* shimmer */
+  .shimmer {
+    position:absolute; inset:0; border-radius:24px; pointer-events:none; z-index:2;
+    background:linear-gradient(120deg,transparent 30%,rgba(255,255,255,0.11) 50%,transparent 70%);
+    background-size:200% 100%;
+    animation:shimmerAnim 4s linear infinite;
+  }
+  @keyframes shimmerAnim {
+    0%   { background-position:200% 0; }
+    100% { background-position:-200% 0; }
+  }
+
+  /* ── Heart QR display (full card visual) ── */
+  .heart-qr-wrap {
     width: 100%;
-    display: block;
-    border-radius: 16px;
-    transition: transform 0.5s ease;
-  }
-
-  /* 3D QR positioning and styling */
-  .qr-wrapper {
-    position: absolute;
-    top: 39%;
-    left: 49%;
-    transform: translate(-50%, -50%) perspective(400px) rotateX(12deg) rotateY(-5deg) translateZ(1px);
-    width: 90px;
-    height: 90px;
-    mix-blend-mode: multiply;
-    opacity: 0.85;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.5s ease;
-    pointer-events: none;
-  }
-
-  .qr-wrapper canvas {
-    width: 80px;
-    height: 80px;
-    display: block;
-    filter: blur(0.3px);
-  }
-
-  /* Hover effect for the QR wrapper matches the image scaling */
-  .card:hover .qr-wrapper {
-    transform: translate(-50%, -50%) perspective(400px) rotateX(12deg) rotateY(-5deg) translateZ(1px) scale(1.05);
-  }
-
-  .card:hover .scene img {
-    transform: scale(1.05);
-  }
-
-  /* Titles */
-  h2 {
-    color: #ff85a1;
-    margin: 25px 0 5px;
-    font-size: 1.5rem;
+    border-radius: 20px;
+    overflow: hidden;
     transform: translateZ(30px);
-    text-shadow: 0 2px 10px rgba(255, 77, 136, 0.5);
-    letter-spacing: 0.5px;
+    box-shadow: 0 0 40px rgba(255,50,100,0.35), 0 8px 30px rgba(0,0,0,0.6);
+    position: relative;
+    animation: heartGlow 3s ease-in-out infinite alternate;
   }
-
-  .scan {
-    color: #fff;
-    font-size: 0.95rem;
-    font-weight: 500;
-    opacity: 0.8;
-    transform: translateZ(20px);
-    margin-bottom: 25px;
-    background: linear-gradient(90deg, #ff85a1, #ffeaef);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+  @keyframes heartGlow {
+    from { box-shadow: 0 0 30px rgba(255,50,100,0.3), 0 8px 30px rgba(0,0,0,0.6); }
+    to   { box-shadow: 0 0 60px rgba(255,50,100,0.65), 0 8px 30px rgba(0,0,0,0.6); }
   }
-
-  /* Action Buttons */
-  .actions {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+  #heartQRCanvas {
+    display: block;
     width: 100%;
-    transform: translateZ(25px);
+    height: auto;
+    border-radius: 20px;
   }
 
-  .btn {
-    padding: 14px 24px;
-    border: none;
-    border-radius: 30px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    text-transform: uppercase;
-    letter-spacing: 1px;
+  /* ── Card titles ── */
+  .card-title {
+    margin:18px 0 4px; font-size:1.3rem; font-weight:700; color:#ff85a1;
+    text-align:center; transform:translateZ(25px);
+    text-shadow:0 2px 12px rgba(255,77,136,0.45);
   }
+  .card-sub {
+    font-size:0.87rem; font-weight:500; text-align:center; transform:translateZ(18px);
+    margin-bottom:16px;
+    background:linear-gradient(90deg,#ff85a1,#ffeaef);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+  }
+
+  /* ── Reaction stats ── */
+  .reaction-stats {
+    display:none; align-items:center; gap:8px;
+    background:rgba(255,77,136,0.1); border:1px solid rgba(255,77,136,0.25);
+    padding:8px 18px; border-radius:20px; font-weight:600; color:#ff85a1;
+    font-size:0.88rem; margin-bottom:14px; transform:translateZ(18px);
+    animation:pulseGlow 2.5s infinite alternate;
+  }
+  @keyframes pulseGlow {
+    from { box-shadow:0 0 8px rgba(255,77,136,0.2); }
+    to   { box-shadow:0 0 20px rgba(255,77,136,0.5); }
+  }
+
+  /* ── Buttons ── */
+  .actions {
+    display:flex; flex-direction:column; gap:10px;
+    width:100%; transform:translateZ(22px);
+  }
+  .btn {
+    padding:13px 22px; border:none; border-radius:50px;
+    font-size:13.5px; font-weight:600; cursor:pointer; color:white;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    transition:transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s ease;
+    text-transform:uppercase; letter-spacing:0.8px;
+    position:relative; overflow:hidden;
+  }
+  .btn::after {
+    content:''; position:absolute; inset:0;
+    background:rgba(255,255,255,0); transition:background 0.2s; border-radius:50px;
+  }
+  .btn:hover::after { background:rgba(255,255,255,0.08); }
+  .btn:hover  { transform:translateY(-2px) scale(1.02); }
+  .btn:active { transform:translateY(1px) scale(0.99); }
 
   .btn-copy {
-    background: linear-gradient(135deg, #ff4d88, #ff1f5a);
-    box-shadow: 0 5px 15px rgba(255, 31, 90, 0.4);
+    background:linear-gradient(135deg,#ff4d88,#ff1f5a);
+    box-shadow:0 4px 16px rgba(255,31,90,0.4);
   }
+  .btn-copy:hover { box-shadow:0 8px 28px rgba(255,31,90,0.6); }
 
-  .share-row {
-    display: flex;
-    gap: 12px;
+  .btn-download {
+    background:linear-gradient(135deg,#7b4fff,#4f46e5);
+    box-shadow:0 4px 16px rgba(79,70,229,0.4);
   }
+  .btn-download:hover { box-shadow:0 8px 28px rgba(79,70,229,0.6); }
 
-  .btn-share {
-    flex: 1;
-  }
+  .share-row { display:flex; gap:10px; }
+  .btn-share { flex:1; }
 
   .whatsapp {
-    background: linear-gradient(135deg, #25D366, #128C7E);
-    box-shadow: 0 5px 15px rgba(37, 211, 102, 0.3);
+    background:linear-gradient(135deg,#25D366,#128C7E);
+    box-shadow:0 4px 16px rgba(37,211,102,0.3);
   }
+  .whatsapp:hover { box-shadow:0 8px 28px rgba(37,211,102,0.5); }
 
   .instagram {
-    background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
-    box-shadow: 0 5px 15px rgba(188, 24, 136, 0.3);
+    background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);
+    box-shadow:0 4px 16px rgba(188,24,136,0.3);
   }
+  .instagram:hover { box-shadow:0 8px 28px rgba(188,24,136,0.5); }
 
-  .btn:hover {
-    transform: translateY(-3px) scale(1.02);
-  }
-  
-  .btn-copy:hover {
-    box-shadow: 0 8px 25px rgba(255, 31, 90, 0.6);
-  }
-  .whatsapp:hover {
-    box-shadow: 0 8px 25px rgba(37, 211, 102, 0.5);
-  }
-  .instagram:hover {
-    box-shadow: 0 8px 25px rgba(188, 24, 136, 0.5);
-  }
-  
-  .btn:active {
-    transform: translateY(1px);
-  }
-
-  /* Notification Toast */
-  #toast {
-    position: fixed;
-    bottom: -100px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: white;
-    padding: 12px 24px;
-    border-radius: 50px;
-    transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    z-index: 1000;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  }
-  #toast.show {
-    bottom: 30px;
-  }
-
-  .reaction-stats {
-    background: rgba(255, 77, 136, 0.1);
-    border: 1px solid rgba(255, 77, 136, 0.3);
-    padding: 10px 20px;
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 600;
-    margin: 15px 0;
-    color: #ff85a1;
-    animation: pulseGlow 2s infinite alternate;
-  }
-  
-  /* QUIZ RESULTS STYLES */
+  /* ── Quiz results ── */
   .quiz-results {
-    width: 380px;
-    margin-top: 20px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    padding: 20px;
-    backdrop-filter: blur(10px);
-    display: none;
-    flex-direction: column;
-    gap: 15px;
+    width:100%; margin-top:14px;
+    background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+    border-radius:18px; padding:16px; display:none; flex-direction:column; gap:12px;
+    transform:translateZ(18px);
   }
   .quiz-title {
-    color: #ff85a1;
-    font-size: 1.1rem;
-    font-weight: 700;
-    text-align: center;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
+    color:#ff85a1; font-size:1rem; font-weight:700; text-align:center;
+    margin-bottom:6px; display:flex; align-items:center; justify-content:center; gap:6px;
   }
   .quiz-item {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    padding: 12px 15px;
-    border-radius: 12px;
+    background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06);
+    padding:10px 14px; border-radius:12px;
   }
-  .quiz-q {
-    font-size: 0.85rem;
-    opacity: 0.7;
-    margin-bottom: 4px;
-    color: #fff;
+  .quiz-q { font-size:0.82rem; opacity:0.65; margin-bottom:3px; color:#fff; }
+  .quiz-a { font-size:0.97rem; font-weight:600; color:#ff4d6d; }
+
+  /* Reaction video */
+  #reactionVideoBox {
+    display:none; width:100%; margin-top:14px; transform:translateZ(22px);
   }
-  .quiz-a {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #ff4d6d;
-  }
-  
-  @keyframes shimmer {
-    0% { left: -100%; }
-    100% { left: 150%; }
+  #reactionVideoBox h3 { color:#ff85a1; font-size:1rem; margin-bottom:8px; }
+  #reactionPlayer {
+    width:100%; border-radius:14px;
+    border:2px solid rgba(255,255,255,0.15);
+    box-shadow:0 8px 20px rgba(0,0,0,0.5);
   }
 
-  .shimmer-effect {
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 60%;
-    height: 100%;
-    background: linear-gradient(
-      120deg, 
-      transparent, 
-      rgba(255, 255, 255, 0.25), 
-      rgba(255, 255, 255, 0.45), 
-      rgba(255, 255, 255, 0.25), 
-      transparent
-    );
-    animation: shimmer 4s infinite linear;
-    pointer-events: none;
-    z-index: 5;
-    transform: skewX(-20deg);
+  /* ── Toast ── */
+  #toast {
+    position:fixed; bottom:-100px; left:50%; transform:translateX(-50%);
+    background:rgba(20,10,15,0.92); backdrop-filter:blur(12px);
+    border:1px solid rgba(255,77,136,0.3); color:white;
+    padding:11px 22px; border-radius:50px; font-size:0.88rem; font-weight:500;
+    transition:bottom 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    z-index:9999; box-shadow:0 8px 30px rgba(0,0,0,0.4); white-space:nowrap;
+  }
+  #toast.show { bottom:28px; }
+
+  /* ── Loader ── */
+  #loadingOverlay {
+    position:fixed; inset:0; background:#0f0f13;
+    display:flex; align-items:center; justify-content:center;
+    z-index:9000; transition:opacity 0.5s ease;
+  }
+  #loadingOverlay.hidden { opacity:0; pointer-events:none; }
+  .loader-heart { font-size:3rem; animation:heartbeat 0.8s ease-in-out infinite; }
+  @keyframes heartbeat {
+    0%,100% { transform:scale(1); }
+    50%      { transform:scale(1.22); }
   }
 </style>
 </head>
-
 <body>
 
+<div id="loadingOverlay"><div class="loader-heart">💖</div></div>
 <div class="bg-orb bg-orb-1"></div>
 <div class="bg-orb bg-orb-2"></div>
 
+<!-- Header -->
+<div class="page-header">
+  <div class="logo">Only4You</div>
+  <h1>Your Surprise is Ready 🎁</h1>
+  <p>Share with your special one 💕</p>
+</div>
 
-<div class="card-container">
-  <div class="card" id="tiltCard" data-tilt data-tilt-max="10" data-tilt-speed="400" data-tilt-perspective="1000">
-    <div class="shimmer-effect"></div>
-    <div class="scene" id="renderScene">
-      <!-- Reference image -->
-      <img src="assets/basket.jpg" crossorigin="anonymous" id="baseImg" alt="Surprise Basket">
-      
-      <!-- 3D Stylized QR Container -->
-      <div class="qr-wrapper">
-        <canvas id="qrCanvas"></canvas>
-      </div>
+<!-- Card -->
+<div class="card-wrap">
+  <div class="card" id="tiltCard">
+    <div class="shimmer"></div>
+
+    <!-- Heart QR: main visual -->
+    <div class="heart-qr-wrap">
+      <canvas id="heartQRCanvas"></canvas>
     </div>
 
-    <h2>Your Surprise is Ready 💕</h2>
-    <div class="scan">✨ Scan to reveal the magic 💖</div>
+    <div class="card-title">💕 Your Surprise is Ready</div>
+    <div class="card-sub">✨ Scan the heart to reveal the magic</div>
 
-    <div class="reaction-stats" id="reactionStats" style="display:none; transform: translateZ(20px);">
-      <span>💖</span> 
-      <span id="reactionCount">0</span> 
+    <div class="reaction-stats" id="reactionStats">
+      <span>💖</span>
+      <span id="reactionCount">0</span>
       Loves Received
     </div>
 
-    <!-- REACTION VIDEO SECTION -->
-    <div id="reactionVideoBox" style="display:none; transform: translateZ(25px); width:100%; margin-top:20px;">
-      <h3 style="color:#ff85a1; font-size:1.1rem; margin-bottom:10px;">📸 Secret Reaction Caught!</h3>
-      <video id="reactionPlayer" controls style="width:100%; border-radius:15px; border:2px solid rgba(255,255,255,0.2); box-shadow:0 10px 20px rgba(0,0,0,0.5);"></video>
+    <div id="reactionVideoBox">
+      <h3>📸 Secret Reaction Caught!</h3>
+      <video id="reactionPlayer" controls></video>
     </div>
 
-    <!-- QUIZ RESULTS SECTION -->
-    <div id="quizResults" class="quiz-results" style="transform: translateZ(20px);">
-      <div class="quiz-title">✨ Quiz Results ✨</div>
+    <div id="quizResults" class="quiz-results">
+      <div class="quiz-title">✨ Quiz Answers ✨</div>
       <div id="quizItems"></div>
     </div>
 
     <div class="actions">
       <button class="btn btn-copy" id="copyQR">
-        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="18" height="18"><path d="M8 17.929H6c-1.105 0-2-.895-2-2V3.929c0-1.105.895-2 2-2h9c1.105 0 2 .895 2 2v2m-6 14h9c1.105 0 2-.895 2-2v-9.929c0-1.105-.895-2-2-2h-9c-1.105 0-2 .895-2 2v9.929c0 1.105.895 2 2 2z"></path></svg>
-        Copy Image
+        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+          stroke-width="2" viewBox="0 0 24 24" width="17" height="17">
+          <path d="M8 17.929H6c-1.105 0-2-.895-2-2V3.929c0-1.105.895-2 2-2h9c1.105 0 2 .895 2 2v2m-6 14h9c1.105 0 2-.895 2-2v-9.929c0-1.105-.895-2-2-2h-9c-1.105 0-2 .895-2 2v9.929c0 1.105.895 2 2 2z"/>
+        </svg>
+        Copy Shareable Image
+      </button>
+
+      <button class="btn btn-download" id="downloadBtn">
+        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+          stroke-width="2" viewBox="0 0 24 24" width="17" height="17">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+        </svg>
+        Download Image
       </button>
 
       <div class="share-row">
         <button class="btn btn-share whatsapp" id="waShare">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
+          </svg>
           WhatsApp
         </button>
         <button class="btn btn-share instagram" id="igShare">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor">
+            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/>
+          </svg>
           Instagram
         </button>
       </div>
     </div>
-  </div>
-</div>
 
-<div id="toast">Message copied!</div>
+  </div><!-- /card -->
+</div><!-- /card-wrap -->
+
+<div id="toast">Copied!</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import Optimization from "./js/optimization.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBdp7U014kNZzYB4MD9Sqn7MuuCjLWcdxI",
@@ -403,223 +336,341 @@ const firebaseConfig = {
   appId: "1:1051434083700:web:95d52d9fc79ccdba983821"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
 
-window.addEventListener('DOMContentLoaded', () => {
+// ── Toast helper ──────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 3000);
+}
 
-  const params = new URLSearchParams(window.location.search);
-  const id = params.get("id");
+function hideLoader() {
+  const o = document.getElementById('loadingOverlay');
+  o.classList.add('hidden');
+  setTimeout(() => o.remove(), 600);
+}
 
-  if (id) {
-    const ref = doc(db, "surprises", id);
-    onSnapshot(ref, (snap) => {
-      if (snap.exists()) {
-        const data = snap.data();
-        
-        // 1. Reactions (Old Like Counter)
-        const count = data.reactions || 0;
-        document.getElementById("reactionCount").innerText = count;
-        document.getElementById("reactionStats").style.display = "flex";
+// ── Links ─────────────────────────────────────────────────
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
 
-        // 1.5 Real Video Reaction Tracking
-        if (data.reaction) {
-          const videoBox = document.getElementById("reactionVideoBox");
-          const player = document.getElementById("reactionPlayer");
-          player.src = data.reaction;
-          videoBox.style.display = "block";
-        }
+const frontendBase = window.location.origin;
+// ✅ QR points directly to frontend — zero Render cold-start delay
+const directLink = id
+  ? `${frontendBase}/success.html?id=${id}`
+  : `${frontendBase}/success.html`;
 
-        // 2. Quiz Results
-        if (data.quiz && data.quiz.length > 0) {
-          const resultsSec = document.getElementById("quizResults");
-          const itemsBox = document.getElementById("quizItems");
-          resultsSec.style.display = "flex";
-          itemsBox.innerHTML = "";
+// WhatsApp still uses Render for OG meta preview cards
+const ogShareLink = id
+  ? `https://only4you-backend.onrender.com/s/${id}?origin=${encodeURIComponent(frontendBase)}`
+  : directLink;
 
-          data.quiz.forEach((qObj, index) => {
-            const answer = data.quizAnswers ? data.quizAnswers[index] : null;
-            const item = document.createElement("div");
-            item.className = "quiz-item";
-            item.innerHTML = `
-              <div class="quiz-q">${qObj.question}</div>
-              <div class="quiz-a">${answer || '<span style="opacity:0.5; font-weight:normal; font-size:0.8rem;">Waiting... ⏳</span>'}</div>
-            `;
-            itemsBox.appendChild(item);
-          });
-        }
-
-      }
-    });
+// ── Generate Heart QR ─────────────────────────────────────
+function drawHeartQR(canvasId, link, size, isHighRes = false) {
+  const canvas = document.getElementById(canvasId) || document.createElement("canvas");
+  if (isHighRes) {
+    canvas.width = size;
+    canvas.height = size;
   }
+  const ctx = canvas.getContext("2d");
+  const s = size / 100; // scale factor
+  const cx = size / 2;
+  const cy = size / 2;
 
-  let currentLink = id ? `https://only4you-backend.onrender.com/s/${id}?origin=${encodeURIComponent(window.location.origin)}` : "https://example.com";
-  let qrInstance;
+  // 1. Clear & Background
+  ctx.clearRect(0, 0, size, size);
 
-  // Initialize Vanilla Tilt
-  VanillaTilt.init(document.querySelector(".card"), {
-    max: 12,
-    speed: 400,
-    glare: false,
-    perspective: 1000
+  // 2. Draw Heart Shape
+  ctx.save();
+  ctx.beginPath();
+  drawHeartPath(ctx, 0, 0, size);
+  ctx.closePath();
+  
+  // Heart Fill (Glowy Pink)
+  const grad = ctx.createRadialGradient(cx, cy - 10 * s, 0, cx, cy - 10 * s, 50 * s);
+  grad.addColorStop(0, "#ff4d88");
+  grad.addColorStop(1, "#ff1f5a");
+  ctx.fillStyle = grad;
+  
+  ctx.shadowColor = "rgba(255, 31, 90, 0.8)";
+  ctx.shadowBlur = 20 * (size / 300);
+  ctx.fill();
+  ctx.restore();
+
+  // 3. Generate QR code on offscreen canvas
+  const qrSize = Math.round(size * 0.48); // Slightly smaller for better heart fitting
+  const qrOff = document.createElement("canvas");
+  new QRious({
+    element: qrOff,
+    value: link,
+    size: qrSize,
+    foreground: "#ff1f5a",
+    background: "#ffffff",
+    level: "H"
   });
 
-  function showToast(msg) {
-    const toast = document.getElementById('toast');
-    toast.innerText = msg;
-    toast.classList.add('show');
-    setTimeout(() => {
-      toast.classList.remove('show');
-    }, 3000);
+  // 4. Draw QR (centered on heart)
+  const qrX = cx - qrSize / 2;
+  const qrY = cy - qrSize / 2 + 8 * s; // Lowered significantly to land in the "meaty" part of the heart
+
+  // White rounded background for QR
+  ctx.save();
+  const pad = Math.round(6 * (size / 300));
+  ctx.fillStyle = "#ffffff";
+  const roundedQrX = Math.round(qrX);
+  const roundedQrY = Math.round(qrY);
+  const roundedQrSize = Math.round(qrSize);
+  roundRect(ctx, roundedQrX - pad, roundedQrY - pad, roundedQrSize + pad * 2, roundedQrSize + pad * 2, Math.round(10 * (size / 300)));
+  ctx.fill();
+
+  // Draw the QR
+  ctx.imageSmoothingEnabled = false; // Prevents blur
+  ctx.drawImage(qrOff, roundedQrX, roundedQrY, roundedQrSize, roundedQrSize);
+  ctx.imageSmoothingEnabled = true; // Restore for everything else
+  ctx.restore();
+
+  return canvas;
+}
+
+// Initialize the main heart QR
+function initMainQR() {
+  const canvas = document.getElementById("heartQRCanvas");
+  // Set internal resolution for crispness
+  canvas.width = 600;
+  canvas.height = 600;
+  drawHeartQR("heartQRCanvas", directLink, 600);
+}
+
+initMainQR();
+
+// ── Firebase realtime ─────────────────────────────────────
+if (id) {
+  const ref = doc(db, "surprises", id);
+  onSnapshot(ref, (snap) => {
+    if (!snap.exists()) return;
+    const data = snap.data();
+
+    document.getElementById("reactionCount").textContent = data.reactions || 0;
+    document.getElementById("reactionStats").style.display = "flex";
+
+    if (data.reaction) {
+      document.getElementById("reactionPlayer").src = data.reaction;
+      document.getElementById("reactionVideoBox").style.display = "block";
+    }
+
+    if (data.quiz && data.quiz.length > 0) {
+      const sec = document.getElementById("quizResults");
+      const box = document.getElementById("quizItems");
+      sec.style.display = "flex";
+      box.innerHTML = "";
+      data.quiz.forEach((q, i) => {
+        const ans = data.quizAnswers ? data.quizAnswers[i] : null;
+        const el = document.createElement("div");
+        el.className = "quiz-item";
+        el.innerHTML = `
+          <div class="quiz-q">${q.question}</div>
+          <div class="quiz-a">${ans || '<span style="opacity:0.5;font-weight:normal;font-size:0.8rem">Waiting... ⏳</span>'}</div>`;
+        box.appendChild(el);
+      });
+    }
+  });
+}
+
+// ── Vanilla Tilt ──────────────────────────────────────────
+if (!Optimization.isLowEnd) {
+  VanillaTilt.init(document.getElementById("tiltCard"), {
+    max: 10, speed: 400, glare: false, perspective: 1200
+  });
+}
+
+hideLoader();
+
+
+
+// ── Build composite shareable image ──────────────────────
+// Generates the large high-res Heart QR image
+async function buildShareCanvas() {
+  const size = 1200; // High res for sharing
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  
+  // 1. Background gradient matching the app
+  const bgGrad = ctx.createRadialGradient(size/2, size/2, 0, size/2, size/2, size*0.8);
+  bgGrad.addColorStop(0, "#2a0a1f");
+  bgGrad.addColorStop(1, "#0f0f13");
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, size, size);
+
+  // 2. Draw the heart QR on this canvas
+  const s = size / 100;
+  const cx = size / 2;
+  const cy = size / 2;
+
+  ctx.save();
+  ctx.beginPath();
+  drawHeartPath(ctx, 0, 0, size); // Draw heart filling the canvas
+  ctx.fillStyle = "#ff1f5a";
+  ctx.shadowColor = "rgba(255, 31, 90, 0.8)";
+  ctx.shadowBlur = 40;
+  ctx.fill();
+  ctx.restore();
+
+  // 3. QR code
+  const qrSize = Math.round(size * 0.45); // Proportionally smaller for a cleaner look
+  const qrOff = document.createElement("canvas");
+  new QRious({ element: qrOff, value: directLink, size: qrSize, foreground: "#ff1f5a", background: "#ffffff", level: "H" });
+
+  const qrX = Math.round(cx - qrSize / 2);
+  const qrY = Math.round(cy - qrSize / 2 + 8 * s);
+  
+  ctx.save();
+  const pad = 15;
+  ctx.fillStyle = "#ffffff";
+  const roundedQrSize = Math.round(qrSize);
+  roundRect(ctx, qrX - pad, qrY - pad, roundedQrSize + pad * 2, roundedQrSize + pad * 2, 20);
+  ctx.fill();
+  ctx.imageSmoothingEnabled = false; // Sharp edge
+  ctx.drawImage(qrOff, qrX, qrY, roundedQrSize, roundedQrSize);
+  ctx.imageSmoothingEnabled = true;
+  ctx.restore();
+
+  // 4. Branding text
+  ctx.font = "bold 40px Inter, sans-serif";
+  ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+  ctx.textAlign = "center";
+  ctx.fillText("ONLY4YOU.IN", size / 2, size - 80);
+
+  return canvas;
+}
+
+// Heart path (fits in a bounding box starting at x,y with given size)
+function drawHeartPath(ctx, x, y, size) {
+  const cx = x + size / 2;
+  const cy = y + size / 2;
+  const s = size / 200; // scale factor based on 200 units original scale
+
+  // Move to the top center dip
+  ctx.moveTo(cx, cy - 40 * s);
+  
+  // Top left curve
+  ctx.bezierCurveTo(cx, cy - 46 * s, cx - 10 * s, cy - 70 * s, cx - 50 * s, cy - 70 * s);
+  
+  // Bottom left curve
+  ctx.bezierCurveTo(cx - 110 * s, cy - 70 * s, cx - 110 * s, cy + 5 * s, cx - 110 * s, cy + 5 * s);
+  
+  // Tip left curve
+  ctx.bezierCurveTo(cx - 110 * s, cy + 40 * s, cx - 70 * s, cy + 84 * s, cx, cy + 120 * s);
+  
+  // Tip right curve
+  ctx.bezierCurveTo(cx + 70 * s, cy + 84 * s, cx + 110 * s, cy + 40 * s, cx + 110 * s, cy + 5 * s);
+  
+  // Bottom right curve
+  ctx.bezierCurveTo(cx + 110 * s, cy + 5 * s, cx + 110 * s, cy - 70 * s, cx + 50 * s, cy - 70 * s);
+  
+  // Top right curve
+  ctx.bezierCurveTo(cx + 10 * s, cy - 70 * s, cx, cy - 46 * s, cx, cy - 40 * s);
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+async function getBlob() {
+  const c = await buildShareCanvas();
+  return new Promise(res => c.toBlob(res, "image/png", 1.0));
+}
+
+// ── Copy Image ───────────────────────────────────────────
+document.getElementById("copyQR").onclick = async () => {
+  showToast("Generating image... ⏳");
+  try {
+    const blob = await getBlob();
+    await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+    showToast("Image copied! Paste anywhere 💖");
+  } catch {
+    const c = await buildShareCanvas();
+    const a = document.createElement("a");
+    a.download = "only4you-surprise.png";
+    a.href = c.toDataURL("image/png", 1.0);
+    a.click();
+    showToast("Saved as image ⬇️");
   }
+};
 
-  function generateQR() {
-    // Clear old if exists to re-animate
-    const canvas = document.getElementById("qrCanvas");
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0,0, canvas.width, canvas.height);
-
-    qrInstance = new QRious({
-      element: canvas,
-      value: currentLink,
-      size: 300,
-      foreground: "#1a0b16",
-      background: "transparent"
-    });
+// ── Download ─────────────────────────────────────────────
+document.getElementById("downloadBtn").onclick = async () => {
+  showToast("Preparing... ⏳");
+  try {
+    const c = await buildShareCanvas();
+    const a = document.createElement("a");
+    a.download = "only4you-surprise.png";
+    a.href = c.toDataURL("image/png", 1.0);
+    a.click();
+    showToast("Downloaded! 🎁");
+  } catch(err) {
+    console.error(err);
+    showToast("Failed ❌");
   }
+};
 
-  generateQR(); // Init first one
-
-  // Advanced Image Generation & Copy
-  document.getElementById("copyQR").onclick = async () => {
+// ── WhatsApp ─────────────────────────────────────────────
+document.getElementById("waShare").onclick = async () => {
+  try {
+    showToast("Copying image... ⏳");
     try {
-      showToast("Generating high-res image... ⏳");
-      const baseImg = document.getElementById("baseImg");
-      const qrCanvas = document.getElementById("qrCanvas");
+      const blob = await getBlob();
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+    } catch(e) { /* proceed even if clipboard fails */ }
+    const msg = `💖 I made something special for you!\nOpen it here 👉 ${ogShareLink}`;
+    window.open("https://wa.me/?text=" + encodeURIComponent(msg));
+    showToast("Image copied — paste in WhatsApp! ✨");
+  } catch(err) {
+    console.error(err);
+    showToast("Something went wrong ❌");
+  }
+};
 
-      // create final canvas with high res
-      const canvas = document.createElement("canvas");
-      canvas.width = baseImg.naturalWidth || 800; // fallback if image not loaded perfectly
-      canvas.height = baseImg.naturalHeight || 800;
-      
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(baseImg, 0, 0, canvas.width, canvas.height);
-
-      // position and perspective
-      const scaleCanvas = canvas.width / 380; // relative scale based on CSS width
-      const qrSize = 90 * scaleCanvas;
-
-      const centerX = canvas.width * 0.49;
-      const centerY = canvas.height * 0.39;
-
-      const x = centerX - qrSize / 2;
-      const y = centerY - qrSize / 2;
-
-      ctx.save();
-      // Apply the same perspective magic for the generated composite image
-      ctx.translate(centerX, centerY);
-      ctx.transform(1, 0.08, 0, 0.92, 0, 0); 
-      ctx.translate(-centerX, -centerY);
-
-      // Draw QR as printed ink
-      ctx.filter = "blur(0.5px)";
-      ctx.globalAlpha = 0.85;
-      ctx.globalCompositeOperation = "multiply";
-      ctx.drawImage(qrCanvas, x, y, qrSize, qrSize);
-      ctx.restore();
-
-      // Create data string
-      const dataUrl = canvas.toDataURL("image/png", 1.0);
-
-      try {
-        const res = await fetch(dataUrl);
-        const blob = await res.blob();
-        await navigator.clipboard.write([
-          new ClipboardItem({ "image/png": blob })
-        ]);
-        showToast("Perfect copy 💖");
-      } catch {
-        const a = document.createElement("a");
-        a.download = "surprise.png";
-        a.href = dataUrl;
-        a.click();
-        showToast("Image Downloaded ⬇️");
+// ── Instagram / Native Share ─────────────────────────────
+document.getElementById("igShare").onclick = async () => {
+  if (navigator.share) {
+    try {
+      const blob = await getBlob();
+      const file = new File([blob], "only4you-surprise.png", { type: "image/png" });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: "A Special Surprise 💖", text: `Open here: ${directLink}` });
+        showToast("Shared! 🎉");
+        return;
       }
-    } catch(err) {
-      console.error(err);
-      showToast("Failed to copy image ❌");
-    }
-  };
-
-  // WhatsApp Share
-  document.getElementById("waShare").onclick = async () => {
+    } catch(e) { /* fallback */ }
     try {
-      showToast("Preparing to share... ⏳");
-      const element = document.querySelector(".card");
-      
-      // We temporarily remove tilt and shimmer for a perfect screenshot
-      const shimmer = element.querySelector(".shimmer-effect");
-      if(shimmer) shimmer.style.display = "none";
-      
-      element.vanillaTilt.destroy();
-      element.style.transform = "none";
-      
-      const canvas = await html2canvas(element, {
-        scale: 3,
-        useCORS: true,
-        backgroundColor: null
-      });
-
-      if(shimmer) shimmer.style.display = "block";
-
-      // Re-init tilt
-      VanillaTilt.init(element, {
-        max: 12,
-        speed: 400,
-        glare: true,
-        "max-glare": 0.25,
-        perspective: 1000
-      });
-
-      const dataUrl = canvas.toDataURL("image/png");
-
-      try {
-        const res = await fetch(dataUrl);
-        const blob = await res.blob();
-        await navigator.clipboard.write([
-          new ClipboardItem({"image/png": blob})
-        ]);
-      } catch(e) {} // ignore clipboard fail, continue to whatsapp
-
-      const message = `💖 Open your surprise:\n${currentLink}`;
-      window.open("https://wa.me/?text=" + encodeURIComponent(message));
-      
-      showToast("Image copied! Paste in WhatsApp ✨");
-
-    } catch(err) {
-      console.error(err);
-      showToast("Something went wrong ❌");
+      await navigator.share({ title: "A Special Surprise 💖", url: directLink });
+      showToast("Shared! 🎉");
+    } catch(e) {}
+  } else {
+    try {
+      await navigator.clipboard.writeText(directLink);
+      showToast("Link copied! Paste on Instagram 📋");
+    } catch {
+      window.open(directLink);
     }
-  };
-
-  // Instagram Share
-  document.getElementById("igShare").onclick = () => {
-    if(navigator.share) {
-      navigator.share({
-        title: 'Your Surprise 💖',
-        text: 'Tap to reveal your surprise ✨',
-        url: currentLink
-      }).then(() => {
-        showToast("Shared successfully! 🎉");
-      }).catch((e) => {
-        console.error(e);
-      });
-    } else {
-      window.open(currentLink);
-    }
-  };
-
-});
+  }
+};
 </script>
 </body>
 </html>

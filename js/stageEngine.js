@@ -1,5 +1,5 @@
-import { getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import Optimization from "./optimization.js";
 
 // ADD PUZZLE STYLES
 const style = document.createElement('style');
@@ -79,13 +79,263 @@ style.textContent = `
     transform: translateY(-3px);
     box-shadow: 0 15px 30px rgba(255,77,109,0.5);
   }
-  @keyframes lovePulse {
+  /* ================= PREMIUM GLASSMORPHISM ================= */
+  .card, .envelope-wrapper, .modal-content {
+    background: rgba(255, 255, 255, 0.4) !important;
+    backdrop-filter: blur(15px) !important;
+    -webkit-backdrop-filter: blur(15px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 0 8px 32px 0 rgba(231, 84, 128, 0.2) !important;
+  }
+  
+  /* ================= 3D ENVELOPE ================= */
+  .envelope-container {
+    perspective: 1500px;
+    width: 300px;
+    height: 200px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 5000;
+    cursor: pointer;
+    transition: 0.8s ease;
+  }
+  
+  .envelope {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: #ff4d6d;
+    border-radius: 0 0 10px 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    transform-style: preserve-3d;
+  }
+  
+  .envelope-flap {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    border-left: 150px solid transparent;
+    border-right: 150px solid transparent;
+    border-top: 100px solid #ff1a4d;
+    transform-origin: top;
+    transition: 0.6s ease;
+    z-index: 2;
+  }
+  
+  .envelope-opened .envelope-flap {
+    transform: rotateX(180deg);
+  }
+  
+  .envelope-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-weight: bold;
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 3;
+    pointer-events: none;
+  }
+
+  /* ================= NEW PREMIUM BOKEH BACKGROUND & CARD SHINE ================= */
+  .card {
+    position: relative;
+    overflow: hidden;
+  }
+  .card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 30%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transform: skewX(-25deg);
+    animation: premiumShine 6s infinite;
+    pointer-events: none;
+    z-index: 10;
+  }
+  @keyframes premiumShine {
+    0% { left: -100%; }
+    15% { left: 200%; }
+    100% { left: 200%; }
+  }
+
+  .bokeh-particle {
+    position: fixed;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,105,180,0.3) 50%, transparent 100%);
+    pointer-events: none;
+    z-index: -1;
+    animation: bokehFloat linear infinite;
+    opacity: 0;
+  }
+  
+  @keyframes bokehFloat {
+    0% { transform: translateY(110vh) scale(0.5); opacity: 0; }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.6; }
+    100% { transform: translateY(-20vh) scale(1.5); opacity: 0; }
+  }
+
+  /* ================= FALLING HEARTS & FLOWERS ================= */
+  .floatHeart {
+    position: fixed;
+    pointer-events: none;
+    font-size: 28px;
+    z-index: 9999;
+    animation: heartFloat 1s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
+    text-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  }
+  @keyframes heartFloat {
+    0% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
+    100% { opacity: 0; transform: translateY(-150px) scale(1.8) rotate(45deg); }
+  }
+
+  /* ================= CONTINUOUS EMOJI SNOWFALL ================= */
+  .falling-emoji {
+    position: fixed;
+    top: -50px;
+    z-index: 998;
+    pointer-events: none;
+    animation: fallDown linear forwards;
+    filter: drop-shadow(0 2px 5px rgba(0,0,0,0.2));
+  }
+  @keyframes fallDown {
+    0%   { transform: translateY(0) rotate(0deg); }
+    100% { transform: translateY(110vh) rotate(360deg); }
+  }
+
+  /* ================= 3D ENVELOPE ENHANCEMENTS ================= */
+  .envelope {
+    animation: drift 3s ease-in-out infinite alternate;
+  }
+  @keyframes drift {
+    0% { transform: translateY(0px); }
+    100% { transform: translateY(-8px); }
+  }
+  
+  .envelope::after {
+    content: "CLICK TO OPEN 💌";
+    position: absolute;
+    top: 60%; left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    letter-spacing: 1px;
+    z-index: 3;
+    pointer-events: none;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    background: rgba(0,0,0,0.25);
+    padding: 8px 16px;
+    border-radius: 20px;
+    white-space: nowrap;
+    animation: pulseText 2s infinite;
+    transition: opacity 0.3s ease;
+  }
+  
+  .envelope.envelope-opened::after {
+    opacity: 0;
+    animation: none;
+  }
+  
+  @keyframes pulseText {
+    0%, 100% { opacity: 0.85; transform: translate(-50%, -50%) scale(1); }
+    50% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+  }
+  
+
+  /* ================= BEAUTIFUL FUTURISTIC TRANSITION ================= */
+  #transitionOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    pointer-events: none;
+    background: rgba(255, 105, 180, 0.05);
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+    opacity: 0;
+    transition: opacity 0.4s ease, backdrop-filter 0.4s ease, -webkit-backdrop-filter 0.4s ease;
+  }
+
+  #transitionOverlay::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scaleX(0) rotate(-15deg);
+    width: 150vw;
+    height: 6px;
+    background: #fff;
+    box-shadow: 0 0 40px 15px #ff4d6d, 0 0 80px 30px #ff8fab;
+    border-radius: 50%;
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
+  }
+  
+  #transitionOverlay.active {
+    opacity: 1;
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+  }
+  
+  #transitionOverlay.active::after {
+    opacity: 1;
+    transform: translate(-50%, -50%) scaleX(1) rotate(-15deg);
+  }
+
+  .stage {
+    animation: none;
+  }
+  .stage.active {
+    animation: stageReveal 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @keyframes stageReveal {
+    from { opacity: 0; transform: translateY(18px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0)   scale(1); }
+  }
+
+
+  /* ================= VISUALIZER ================= */
+  #visualizerCanvas {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 80px;
+    z-index: 100;
+    pointer-events: none;
+    opacity: 0.6;
+  }
+
+  .premium-shimmer {
+    background: linear-gradient(-45deg, #ff4d6d, #ff8fab, #ff4d6d, #ff8fab);
+    background-size: 400% 400%;
+    animation: shimmerGrad 3s ease infinite;
+  }
+  
+  @keyframes shimmerGrad {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  @keyframes pulse {
     0% { transform: translate(-50%, -50%) scale(1); }
     50% { transform: translate(-50%, -50%) scale(1.05); }
     100% { transform: translate(-50%, -50%) scale(1); }
   }
   .monkey-gif {
-    animation: lovePulse 2s infinite ease-in-out;
+    animation: pulse 2s infinite ease-in-out;
   }
   .fade-in {
     animation: fadeIn 0.5s ease-out forwards;
@@ -123,13 +373,12 @@ INIT ENGINE
 ========================================= */
 
 export function initEpicInteractions(data){
-window.storyData = data
-
+  window.storyData = data;
+  
   // Ensure full journey and mock data if in preview mode
-  const isPreview = new URLSearchParams(window.location.search).get('preview') === '1';
+  const isPreview = window.location.search && new URLSearchParams(window.location.search).get('preview') === '1';
+  
   if (isPreview) {
-    window.allowedStages = [1, 2, 3, 4, 5, 6]; // Force full flow for carousel
-    
     // Inject Mock Data if empty
     if (!data.message) data.message = "You are the most special person in my life. Every moment with you is a gift! ❤️";
     if (!data.images || data.images.length === 0) {
@@ -146,6 +395,19 @@ window.storyData = data
       ];
     }
   }
+
+  // Actually apply the stage locking based on the plan!
+  applyStageLocking(String(data.plan || "48"));
+  
+  // Force full flow for carousel regardless of plan
+  if (isPreview) {
+    window.allowedStages = [1, 2, 3, 4, 5, 6]; 
+  }
+  
+  initEnvelope(data, () => {
+    initBGM(data);
+    createVisualizer();
+    createBokehParticles();
 
   if (data.scratchMessage) {
     const idx = window.allowedStages?.indexOf(6);
@@ -168,13 +430,13 @@ window.storyData = data
   initProposalGame()
   initTransitions()
 
-showStage(1)
+    showStage(1)
 
-  // Start Auto-Cycle if in preview mode
-  if (isPreview) {
-    startPreviewAutoCycle();
-  }
-
+    // Start Auto-Cycle if in preview mode
+    if (isPreview) {
+      startPreviewAutoCycle();
+    }
+  });
 }
 
 function startPreviewAutoCycle() {
@@ -216,13 +478,20 @@ BG MUSIC
 ========================================= */
 
 function initBGM(data) {
-  if (!data.bgMusic) return;
+  // If user provided a song, use it. 
+  // If not, and the plan is premium, use the default "romantic.mp3"
+  let bgSource = data.bgMusic;
+  if (!bgSource && (data.plan === "169" || data.plan === "299")) {
+      bgSource = "music/romantic.mp3";
+  }
+
+  if (!bgSource) return;
   
   const bgm = document.createElement("audio");
   bgm.id = "globalBgm";
-  bgm.src = data.bgMusic;
+  bgm.src = bgSource;
   bgm.loop = true;
-  bgm.volume = 0.5; // Starts at half volume
+  bgm.volume = 0.15; // Lowered default volume
   document.body.appendChild(bgm);
 
   // Start playing on the very first tap anywhere in the document
@@ -236,19 +505,122 @@ function initBGM(data) {
 window.duckBGM = function(ducked) {
   const bgm = document.getElementById("globalBgm");
   if(!bgm) return;
-  // Fade volume
-  let target = ducked ? 0.05 : 0.5;
+  // Fade volume between 0.15 (Normal) and 0.02 (Ducked)
+  let target = ducked ? 0.02 : 0.15;
   let current = bgm.volume;
-  let step = ducked ? -0.05 : 0.05;
+  let step = ducked ? -0.02 : 0.02;
   const fade = setInterval(() => {
     current += step;
+    // Bounds checking
     if((ducked && current <= target) || (!ducked && current >= target)) {
       bgm.volume = target;
       clearInterval(fade);
     } else {
-      bgm.volume = current;
+      bgm.volume = Math.max(0, Math.min(1, current));
     }
   }, 100);
+}
+
+/* =========================================
+PREMIUM: 3D ENVELOPE
+========================================= */
+
+function initEnvelope(data, onComplete) {
+  // Templates each have their own built-in envelope in their HTML.
+  // We do NOT inject a second one — just call onComplete immediately.
+  onComplete();
+}
+
+function createBokehParticles() {
+  if (typeof Optimization !== 'undefined' && Optimization.isLowEnd) return;
+  for (let i = 0; i < 15; i++) {
+    const p = document.createElement('div');
+    p.className = 'bokeh-particle';
+    const size = Math.random() * 50 + 20;
+    p.style.width = size + 'px';
+    p.style.height = size + 'px';
+    p.style.left = Math.random() * 100 + 'vw';
+    p.style.animationDuration = (Math.random() * 15 + 10) + 's';
+    p.style.animationDelay = (Math.random() * 10) + 's';
+    document.body.appendChild(p);
+  }
+}
+
+
+/* =========================================
+BEAUTIFUL STAGE TRANSITION (works on all devices)
+========================================= */
+
+function triggerTransition(callback) {
+  let overlay = document.getElementById("transitionOverlay");
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.id = "transitionOverlay";
+    document.body.appendChild(overlay);
+  }
+
+  // Fade the overlay in
+  overlay.classList.add("active");
+
+  // After a short flash, run the callback (stage switch happens here)
+  setTimeout(() => {
+    if (callback) callback();
+    // Fade back out quickly
+    setTimeout(() => {
+      overlay.classList.remove("active");
+    }, 80);
+  }, 200);
+}
+
+
+/* =========================================
+PREMIUM: MUSIC VISUALIZER
+========================================= */
+
+function createVisualizer() {
+  const bgm = document.getElementById("globalBgm");
+  if (!bgm || Optimization.isLowEnd) return;
+
+  const canvas = document.createElement("canvas");
+  canvas.id = "visualizerCanvas";
+  document.body.appendChild(canvas);
+
+  const ctx = canvas.getContext("2d");
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const source = audioCtx.createMediaElementSource(bgm);
+  const analyzer = audioCtx.createAnalyser();
+
+  source.connect(analyzer);
+  analyzer.connect(audioCtx.destination);
+
+  analyzer.fftSize = 64;
+  const bufferLength = analyzer.frequencyBinCount;
+  const dataArray = new Uint8Array(bufferLength);
+
+  function draw() {
+    requestAnimationFrame(draw);
+    canvas.width = window.innerWidth;
+    const width = canvas.width;
+    const height = canvas.height;
+
+    analyzer.getByteFrequencyData(dataArray);
+    ctx.clearRect(0, 0, width, height);
+
+    const barWidth = (width / bufferLength) * 2.5;
+    let x = 0;
+
+    for (let i = 0; i < bufferLength; i++) {
+        const barHeight = (dataArray[i] / 255) * height;
+        ctx.fillStyle = `rgba(231, 84, 128, ${dataArray[i] / 255})`;
+        ctx.fillRect(x, height - barHeight, barWidth, barHeight);
+        x += barWidth + 1;
+    }
+  }
+
+  bgm.onplay = () => {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    draw();
+  };
 }
 
 /* =========================================
@@ -317,11 +689,9 @@ if(index === -1) return
 const next = flow[index+1]
 
 if(next){
-
-tvStaticTransition(()=>{
-showStage(next)
-})
-
+  triggerTransition(()=>{
+    showStage(next)
+  })
 }
 
 }
@@ -338,11 +708,9 @@ if(index === -1) return
 const prev = flow[index-1]
 
 if(prev){
-
-tvStaticTransition(()=>{
-showStage(prev)
-})
-
+  triggerTransition(()=>{
+    showStage(prev)
+  })
 }
 
 }
@@ -495,31 +863,19 @@ to{opacity:1;transform:translateY(0)}
 
 document.head.appendChild(style)
 
-const staticDiv=document.createElement("div")
-staticDiv.className="tv-static"
-document.body.appendChild(staticDiv)
 
-window.tvStatic = staticDiv
+// TV Static removed — using beautiful triggerTransition instead
+window.tvStatic = null;
+
 
 }
 
 function tvStaticTransition(callback){
-
-if(!window.tvStatic){
-callback()
-return
+  // Replaced TV Static with smooth fade transition
+  triggerTransition(callback);
 }
 
-window.tvStatic.style.opacity=1
 
-setTimeout(()=>{
-
-window.tvStatic.style.opacity=0
-callback()
-
-},300)
-
-}
 
 /* =========================================
 PROGRESS DOTS
@@ -567,17 +923,69 @@ LETTER SYSTEM
 
 function initLetter(data){
 
-window.openLetter=function(){
+let envelopeOpened = false;
 
-const flap=document.querySelector(".flap")
-const letter=document.getElementById("letterContent")
+window.openLetter = function() {
+  if (envelopeOpened) return; // prevent double-open
+  envelopeOpened = true;
 
-if(!flap || !letter) return
+  const flap   = document.querySelector(".flap");
+  const letter = document.getElementById("letterContent");
+  const envelope = document.querySelector(".envelope");
+  const btn = envelope?.closest(".card")?.querySelector("button[onclick=\"nextStage()\"]") 
+             || document.querySelector("#stage1 button[onclick=\"nextStage()\"]");
 
-flap.style.transform="rotateX(180deg)"
-letter.style.bottom="0"
+  if (!flap || !letter) return;
 
-}
+  // Tactile pulse
+  if (navigator.vibrate) navigator.vibrate([30, 20, 50]);
+
+  // 1. Lift the envelope slightly and remove text
+  if (envelope) {
+    envelope.classList.add("envelope-opened");
+    envelope.style.transition = "transform 0.3s ease";
+    envelope.style.transform = "scale(1.05) translateY(-6px)";
+  }
+
+  // 2. Flip the flap open
+  flap.style.transition = "transform 0.6s cubic-bezier(0.34,1.56,0.64,1)";
+  flap.style.transform = "rotateX(180deg)";
+
+  // 3. Rise the letter out
+  setTimeout(() => {
+    letter.style.transition = "bottom 0.5s cubic-bezier(0.22,1,0.36,1)";
+    letter.style.bottom = "0";
+
+    // Play BGM when letter opens
+    const bgm = document.getElementById("bgmPlayer");
+    if (bgm) {
+      bgm.play().catch(e => console.log("BGM pass:", e));
+    }
+
+    // Start the continuous magical falling emojis
+    if (typeof startEmojiSnowfall === "function") startEmojiSnowfall();
+    
+  }, 300);
+
+  // 4. After letter is visible, reveal the Continue button
+  setTimeout(() => {
+    if (btn) {
+      btn.style.display = "block";
+      btn.style.opacity = "0";
+      btn.style.transform = "translateY(10px)";
+      btn.style.transition = "opacity 0.4s ease, transform 0.4s ease";
+      requestAnimationFrame(() => {
+        btn.style.opacity = "1";
+        btn.style.transform = "translateY(0)";
+      });
+    }
+  }, 800);
+};
+
+// Hide "Begin Journey" button initially so it only shows after envelope opens
+const stage1Btn = document.querySelector("#stage1 button[onclick=\"nextStage()\"]");
+if (stage1Btn) stage1Btn.style.display = "none";
+
 
 // Add Swipe to Open Mechanics
 const envelope = document.querySelector(".envelope");
@@ -592,8 +1000,10 @@ if(envelope) {
   }, {passive: true});
 }
 
-// 3D Card Hover Effect for Desktop
+// 3D Card Hover Effect for Desktop (Skip for low-end/mobile)
 document.addEventListener("mousemove", (e) => {
+  if (Optimization.isLowEnd || Optimization.isMobile) return;
+  
   const cards = document.querySelectorAll(".card");
   const xAxis = (window.innerWidth / 2 - e.pageX) / 40;
   const yAxis = (window.innerHeight / 2 - e.pageY) / 40;
@@ -717,15 +1127,70 @@ function spawnHearts(){
   const template = window.storyData?.template || "";
   const emoji = ["valentine", "anniversary"].includes(template) ? "🌹" : "💖";
 
-  for(let i=0;i<5;i++){
-    const heart=document.createElement("div")
-    heart.innerHTML=emoji;
-    heart.className="floatHeart"
-    heart.style.left=(window.innerWidth/2+(Math.random()*120-60))+"px"
-    heart.style.top=(window.innerHeight/2)+"px"
-    document.body.appendChild(heart)
-    setTimeout(()=>heart.remove(),1000)
+  // Optimization: Reduce spawn count on low-end
+  const count = Optimization.isLowEnd ? 1 : 5;
+
+  const content = document.getElementById("loveLevelTag");
+  if(content) {
+    const rect = content.getBoundingClientRect();
+    for(let i=0;i<count;i++){
+      const heart=document.createElement("div")
+      heart.innerHTML=emoji;
+      heart.className="floatHeart"
+      heart.style.left=(rect.left + rect.width/2 + (Math.random()*80-40))+"px"
+      heart.style.top=(rect.top)+"px"
+      document.body.appendChild(heart)
+      setTimeout(()=> { if (heart.parentNode) heart.remove(); }, 1000)
+    }
+  } else {
+    for(let i=0;i<count;i++){
+      const heart=document.createElement("div")
+      heart.innerHTML=emoji;
+      heart.className="floatHeart"
+      heart.style.left=(window.innerWidth/2+(Math.random()*120-60))+"px"
+      heart.style.top=(window.innerHeight/2)+"px"
+      document.body.appendChild(heart)
+      setTimeout(()=> { if (heart.parentNode) heart.remove(); }, 1000)
+    }
   }
+}
+
+/* =========================================
+CONTINUOUS FALLING EMOJIS (ON BGM START)
+========================================= */
+function startEmojiSnowfall() {
+  const template = window.storyData?.template || "";
+  
+  let emojis = ["💖", "🌸", "🌹", "✨", "💕"]; // Default romance mix (Hearts & Flowers)
+  if (template === "anniversary") emojis = ["🥂", "💖", "🎉", "✨", "🎈"];
+  if (template === "forgiveness") emojis = ["🥺", "🙏", "❤️‍🩹", "🌧️", "🌸"];
+  if (template === "epic") emojis = ["✨", "🔥", "💖", "⭐", "💫"];
+
+  const spawnDelay = (typeof Optimization !== 'undefined' && Optimization.isLowEnd) ? 3000 : 700;
+  
+  // Drop first immediately, then interval
+  dropEmoji(emojis);
+  setInterval(() => dropEmoji(emojis), spawnDelay);
+}
+
+function dropEmoji(emojis) {
+  // Pick a random emoji from the template's mix
+  const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+
+  const el = document.createElement("div");
+  el.innerText = emoji;
+  el.className = "falling-emoji";
+  el.style.left = (Math.random() * 90 + 5) + "vw";
+  el.style.fontSize = (Math.random() * 15 + 15) + "px";
+  el.style.opacity = (Math.random() * 0.4 + 0.3).toString();
+  
+  const duration = Math.random() * 5 + 8; // 8s to 13s
+  el.style.animationDuration = duration + "s";
+  // Random horizontal drift
+  el.style.marginLeft = (Math.random() * 100 - 50) + "px";
+  
+  document.body.appendChild(el);
+  setTimeout(() => { if(el.parentNode) el.remove(); }, duration * 1000);
 }
 
 /* =========================================
@@ -951,8 +1416,10 @@ function initMemories(data){
     }
 
     function checkSolved() {
-      const isSolved = tiles.every((tile, index) => {
-          // In swap mode, we compare pieceIdx to its current location in DOM (index)
+      // The visual grid position is determined purely by DOM order.
+      // So we must check if the current visual DOM elements have the correct pieceIdx in sequence.
+      const currentVisualOrder = Array.from(screen.children);
+      const isSolved = currentVisualOrder.every((tile, index) => {
           return parseInt(tile.dataset.pieceIdx) === index;
       });
 
@@ -961,17 +1428,30 @@ function initMemories(data){
         puzzleSolved = true;
         screen.style.gap = "0";
         screen.style.padding = "0";
-        tiles.forEach(t => t.style.border = "none");
+        Array.from(screen.children).forEach(t => t.style.border = "none");
         
         // Remove reference image
         const ref = document.getElementById("puzzleRefImg");
         if(ref) ref.remove();
         
-        const continueBtn = document.querySelector("#stage3 button[onclick*='nextStage']");
+        // Use an un-failable fallback robust selector for the button in case templates rename it
+        let continueBtn = document.querySelector("#stage3 button[onclick*='nextStage']");
+        if (!continueBtn) {
+            const allBtns = document.querySelectorAll("#stage3 button");
+            allBtns.forEach(b => {
+                const txt = b.innerText.toLowerCase();
+                if (txt.includes("continue") || txt.includes("next step") || txt.includes("reveal")) {
+                    continueBtn = b;
+                }
+            });
+        }
+        
         if(continueBtn) {
             continueBtn.style.display = "block";
+            continueBtn.style.visibility = "visible";
             continueBtn.classList.add("lovePulse");
         }
+
         
         confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
       }
@@ -1227,81 +1707,110 @@ function initCatchGame(data) {
     const area = document.getElementById("catchArea");
     if(!area) return;
 
-     heartInterval = setInterval(() => {
+    // Throttle spawn rate for low-end devices
+    const spawnRate = Optimization.isLowEnd ? 1100 : 700;
+
+    heartInterval = setInterval(() => {
         if (score >= 10) {
           clearInterval(heartInterval);
           return;
         }
 
-        const isHeartbreak = Math.random() < 0.2; // 20% chance for heartbreak
-        const heart = document.createElement("div");
-        heart.innerHTML = isHeartbreak ? "💔" : ["💖", "💗", "💕", "💞", "💘"][Math.floor(Math.random()*5)];
-        heart.style.position = "absolute";
-        heart.style.left = (Math.random() * 80 + 5) + "%";
-        heart.style.top = "-40px";
-        heart.style.fontSize = "30px";
-        heart.style.cursor = "pointer";
-        heart.style.transition = "top 2.5s linear";
-        heart.style.userSelect = "none";
+        const isHeartbreak = Math.random() < 0.2;
+        const heartContainer = document.createElement("div");
         
-        // Handle both click and touch for fast tapping
+        // LARGE HITBOX for easier mobile play
+        heartContainer.style.cssText = `
+          position: absolute;
+          left: ${Math.random() * 80 + 5}%;
+          top: -60px;
+          padding: 20px;
+          cursor: pointer;
+          user-select: none;
+          touch-action: manipulation;
+          transition: transform 2.8s linear;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 5;
+        `;
+        
+        const emoji = document.createElement("span");
+        emoji.innerHTML = isHeartbreak ? "💔" : ["💖", "💗", "💕", "💞", "💘"][Math.floor(Math.random()*5)];
+        emoji.style.fontSize = "32px";
+        heartContainer.appendChild(emoji);
+        
         const tapHandler = (e) => {
           e.preventDefault();
+          e.stopPropagation();
           
           if(isHeartbreak) {
+            if(navigator.vibrate) navigator.vibrate(100); // Strong vibrate for heartbreak
             score = 0;
             const scoreEl = document.getElementById("catchScore");
             if(scoreEl) {
                scoreEl.innerText = "0 / 10";
                scoreEl.style.color = "red";
-               scoreEl.style.transform = "scale(1.3)";
+               scoreEl.style.transform = "scale(1.2)";
                setTimeout(() => {
                   scoreEl.style.color = "#ff4d6d";
                   scoreEl.style.transform = "scale(1)";
                }, 500);
             }
-            heart.remove();
+            heartContainer.remove();
             return;
           }
 
           score++;
+          if(navigator.vibrate) navigator.vibrate(30); // Soft vibrate for catch
           const scoreEl = document.getElementById("catchScore");
           if(scoreEl) scoreEl.innerText = score + " / 10";
-          heart.remove();
           
+          // Position of pop relative to container
+          const rect = heartContainer.getBoundingClientRect();
+          const areaRect = area.getBoundingClientRect();
+          
+          heartContainer.remove();
+          
+          // POP EFFECT (non-blocking)
           const pop = document.createElement("div");
-         pop.innerHTML = "✨";
-         pop.style.position = "absolute";
-         pop.style.left = heart.style.left;
-         pop.style.top = heart.style.top;
-         pop.style.fontSize = "24px";
-         area.appendChild(pop);
-         setTimeout(() => pop.remove(), 400);
+          pop.innerHTML = "✨";
+          pop.style.cssText = `
+            position: absolute;
+            left: ${rect.left - areaRect.left + 20}px;
+            top: ${rect.top - areaRect.top + 20}px;
+            font-size: 24px;
+            pointer-events: none;
+            animation: lovePulse 0.4s forwards;
+          `;
+          area.appendChild(pop);
+          setTimeout(() => pop.remove(), 400);
 
-         if(score >= 10) {
+          if(score >= 10) {
             clearInterval(heartInterval);
             const btn = document.getElementById("catchNextBtn");
             if(btn) {
                btn.style.display = "block";
                btn.classList.add("lovePulse");
             }
-         }
-       };
+          }
+        };
 
-       heart.addEventListener("mousedown", tapHandler);
-       heart.addEventListener("touchstart", tapHandler, {passive: false});
+        heartContainer.addEventListener("mousedown", tapHandler);
+        heartContainer.addEventListener("touchstart", tapHandler, {passive: false});
 
-       area.appendChild(heart);
+        area.appendChild(heartContainer);
 
-       setTimeout(() => {
-          heart.style.top = "300px";
-       }, 50);
+        // GPU ACCELERATED ANIMATION
+        requestAnimationFrame(() => {
+          heartContainer.style.transform = "translateY(350px)";
+        });
 
-       setTimeout(() => {
-          if(heart.parentElement) heart.remove();
-       }, 2550);
+        setTimeout(() => {
+          if(heartContainer.parentElement) heartContainer.remove();
+        }, 3000);
 
-    }, 700);
+    }, spawnRate);
   }
 }
 
@@ -1445,6 +1954,8 @@ confetti({
 particleCount:250,
 spread:140
 })
+
+if(navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]); // Celebration pattern
 
   const fireworks = new Fireworks.default(document.body, {
     speed: 3,
@@ -1647,7 +2158,7 @@ async function saveQuizAnswers(qIndex, answerValue){
     const response = await fetch("https://only4you-backend.onrender.com/save-quiz-answer", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, qIndex, answerValue })
+      body: JSON.stringify({ id, qIndex, answerValue: answerValue })
     });
     const result = await response.json();
     if(result.success) {

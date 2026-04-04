@@ -7,6 +7,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/fireworks-js@2/dist/index.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script src="../js/optimization.js" type="module"></script>
 
 <style>
 body {
@@ -128,8 +129,10 @@ button:hover {
   cursor: pointer;
   overflow: hidden;
   transition: transform .4s ease;
+  perspective: 600px;
   border: 1px solid rgba(255,255,255,0.4);
 }
+
 
 .envelope:hover {
   transform: scale(1.05);
@@ -338,6 +341,18 @@ button:hover {
   opacity: 1;
   transform: scale(1.2);
 }
+
+.performance-optimized body {
+  animation: none !important;
+}
+.performance-optimized .card {
+  animation: fadeUp 0.5s ease forwards !important;
+  box-shadow: 0 10px 30px rgba(255, 182, 193, 0.2) !important;
+  backdrop-filter: none !important;
+}
+.performance-optimized .floatHeart {
+  display: none !important;
+}
 </style>
 </head>
 
@@ -432,6 +447,8 @@ document.addEventListener("DOMContentLoaded",()=>{
     images: saved.images || [],
     voices: saved.voices || [],
     quiz: saved.quiz || [],
+    bgMusic: saved.bgMusic,
+    plan: saved.plan,
     finalQuestion: saved.finalQuestion || "Can you find it in your heart to forgive me? 💛"
   });
 });
