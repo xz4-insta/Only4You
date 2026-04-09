@@ -8,19 +8,21 @@
 <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
-body, .main-wrapper {
-  margin: 0;
-  overflow: hidden;
-  min-height: 100vh;
+/* AGGRESSIVE THEME OVERRIDES */
+html, body, .main-wrapper {
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  min-height: 100vh !important;
   display: flex !important;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
   background: linear-gradient(135deg, #e0f7fa, #ffffff, #b3e5fc) !important;
-  background-size: 400% 400%;
-  animation: skyMove 15s ease infinite;
-  font-family: 'Poppins', sans-serif;
-  color: #333;
+  background-size: 400% 400% !important;
+  animation: skyMove 15s ease infinite !important;
+  font-family: 'Poppins', sans-serif !important;
+  color: #333 !important;
 }
 
 @keyframes skyMove {
@@ -64,22 +66,22 @@ body, .main-wrapper {
   display: flex;
 }
 
-/* Card */
+/* Card - Overriding engine shadows */
 .card {
-  background: rgba(255,255,255,0.7);
-  backdrop-filter: blur(25px);
-  border-radius: 40px;
-  padding: 50px 30px;
-  width: 450px;
-  max-width: 90%;
-  text-align: center;
-  color: #2c3e50;
-  position: relative;
-  box-shadow: 0 15px 35px rgba(179,229,252,0.5), 0 5px 15px rgba(0,0,0,0.05);
-  animation: fadeIn 1.2s ease forwards;
-  transform-style: preserve-3d;
-  border: 1px solid rgba(255,255,255,0.4);
-  z-index: 10;
+  background: rgba(255,255,255,0.7) !important;
+  backdrop-filter: blur(25px) !important;
+  border-radius: 40px !important;
+  padding: 50px 30px !important;
+  width: 450px !important;
+  max-width: 90% !important;
+  text-align: center !important;
+  color: #2c3e50 !important;
+  position: relative !important;
+  box-shadow: 0 15px 35px rgba(179,229,252,0.6) !important;
+  animation: fadeIn 1.2s ease forwards !important;
+  transform-style: preserve-3d !important;
+  border: 1px solid rgba(255,255,255,0.4) !important;
+  z-index: 10 !important;
 }
 
 @keyframes fadeIn {
@@ -88,39 +90,48 @@ body, .main-wrapper {
 }
 
 h2, h1 {
-  font-family: 'Dancing Script', cursive;
-  font-size: 48px;
-  margin-top: 0;
-  margin-bottom: 10px;
-  color: #0288d1;
+  font-family: 'Dancing Script', cursive !important;
+  font-size: 48px !important;
+  margin-top: 0 !important;
+  margin-bottom: 20px !important;
+  color: #0288d1 !important;
 }
 
-/* ===== ENGINE COMPATIBLE OPENER (PAPER PLANE) ===== */
+/* ===== ENGINE COMPATIBLE OVERRIDE (REMOVE RED/PINK) ===== */
 .envelope {
-  width: 200px;
-  height: 150px;
-  margin: 20px auto;
-  cursor: pointer;
-  position: relative;
-  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  display: block;
+  width: 220px !important;
+  height: 160px !important;
+  margin: 20px auto !important;
+  cursor: pointer !important;
+  position: relative !important;
+  background: transparent !important; /* Forces red box to disappear */
+  box-shadow: none !important;
+  display: block !important;
+}
+
+/* Hide the pink 'CLICK TO OPEN' pill from the engine */
+.envelope::after {
+  content: none !important;
+  display: none !important;
 }
 
 .plane-svg {
-  width: 120px;
+  width: 130px;
   filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
   animation: planeWobble 3s ease-in-out infinite;
   transition: opacity 0.4s ease;
+  position: relative;
+  z-index: 5;
 }
 
-/* Hide plane and reveal text when engine adds .envelope-opened */
+/* Hide plane when engine adds .envelope-opened */
 .envelope.envelope-opened .plane-svg {
   opacity: 0;
   pointer-events: none;
 }
 
 .flap {
-  display: none; /* satisfy engine's requirement */
+  display: none !important; /* satisfy engine's requirement but don't show */
 }
 
 @keyframes planeWobble {
@@ -128,20 +139,20 @@ h2, h1 {
   50% { transform: translateY(-10px) rotate(5deg); }
 }
 
+/* LETTER - Overriding styling */
 #letterContent {
   display: none;
-  background: white;
-  padding: 30px;
-  border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-  font-family: 'Dancing Script', cursive;
-  font-size: 24px;
-  color: #333;
-  line-height: 1.4;
-  position: relative;
-  bottom: -20px; /* Engine will animate this to bottom: 0 */
+  background: white !important;
+  padding: 40px 30px !important;
+  border-radius: 20px !important;
+  box-shadow: 0 10px 40px rgba(2,136,209,0.2) !important;
+  font-family: 'Dancing Script', cursive !important;
+  font-size: 26px !important;
+  color: #01579b !important;
+  line-height: 1.5 !important;
+  position: relative !important;
+  bottom: -40px; 
   opacity: 0;
-  transition: opacity 0.5s ease;
 }
 
 .envelope.envelope-opened #letterContent {
@@ -174,31 +185,9 @@ h2, h1 {
 #loveFill {
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, #26c6da, #0288d1);
+  background: linear-gradient(90deg, #26c6da, #0288d1) !important;
   border-radius: 20px;
   transition: width .4s ease;
-}
-
-/* Bubbles logic (CSS purely) */
-#loveBtn:active::after {
-  content: '🫂';
-  position: absolute;
-  top: -40px;
-  left: 50%;
-  animation: floatUp 1s forwards;
-  pointer-events: none;
-}
-
-@keyframes floatUp {
-  0% { transform: translate(-50%, 0); opacity: 1; }
-  100% { transform: translate(-50%, -100px) scale(2); opacity: 0; }
-}
-
-/* Memories */
-#tvScreen {
-  background: white !important;
-  border: 8px solid white;
-  box-shadow: 0 15px 45px rgba(179,229,252,0.4) !important;
 }
 
 /* Dots */
@@ -208,16 +197,17 @@ h2, h1 {
 }
 
 button {
-  padding: 14px 35px;
-  border: none;
-  border-radius: 35px;
-  margin-top: 20px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  background: linear-gradient(90deg, #0288d1, #26c6da);
-  color: white;
-  font-family: 'Poppins', sans-serif;
+  padding: 14px 40px !important;
+  border: none !important;
+  border-radius: 40px !important;
+  margin-top: 30px !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  background: linear-gradient(90deg, #0288d1, #26c6da) !important;
+  color: white !important;
+  font-family: 'Poppins', sans-serif !important;
+  box-shadow: 0 10px 30px rgba(2, 136, 209, 0.3) !important;
 }
 </style>
 </head>
@@ -230,7 +220,7 @@ button {
     <h2>A message for you... ☁️</h2>
     
     <div class="envelope" onclick="openLetter()">
-      <div class="flap"></div> <!-- Required by Engine -->
+      <div class="flap"></div> <!-- Satisfies Engine -->
       <svg class="plane-svg" viewBox="0 0 512 512" fill="#0288d1">
         <path d="M512 64L0 256l192 64 64 192L512 64z"/>
         <path d="M192 320l256-192-256 128V320z" fill="#01579b"/>
@@ -238,9 +228,10 @@ button {
       <div id="letterContent">
         <!-- Text typed by Engine -->
       </div>
-      <div class="plane-label" style="font-size:12px; margin-top:10px; font-weight:700; color:#0288d1; opacity:0.7">TAP TO UNFOLD ✈️</div>
+      <div class="plane-label" style="font-size:12px; margin-top:20px; font-weight:700; color:#0288d1; opacity:0.7">TAP TO UNFOLD ✈️</div>
     </div>
 
+    <!-- Engine shows this button after openLetter is called -->
     <button onclick="nextStage()" style="display:none">Start Journey ➡</button>
   </div>
 </div>
@@ -264,12 +255,12 @@ button {
 <div class="stage" id="stage3">
   <div class="card">
     <h2>Sweet Memories ☁️</h2>
-    <div id="tvScreen" style="width:100%; height:320px; overflow:hidden; border-radius:20px; margin-top:20px;"></div>
+    <div id="tvScreen" style="width:100%; height:320px; overflow:hidden; border-radius:30px; margin-top:20px;"></div>
     <div style="margin-top:20px; display:flex; gap:10px; justify-content:center;">
       <button onclick="prevMemory()" style="background:#e1f5fe; color:#0288d1;">⬅</button>
       <button onclick="nextMemory()" style="background:#e1f5fe; color:#0288d1;">➡</button>
     </div>
-    <button onclick="nextStage()" style="width:100%;">Continue 💙</button>
+    <button onclick="nextStage()" style="width:100%; margin-top:30px;">Continue 💙</button>
   </div>
 </div>
 
@@ -282,7 +273,7 @@ button {
     <!-- Reaction Button Target (moved from Stage 1) -->
     <div id="reactionTarget" style="margin-top: 30px;"></div>
 
-    <button onclick="nextStage()" style="width:100%; margin-top:20px;">Continue 💙</button>
+    <button onclick="nextStage()" style="width:100%; margin-top:30px;">Continue 💙</button>
   </div>
 </div>
 
@@ -291,7 +282,7 @@ button {
   <div class="card">
     <h2>Our Story ☁️</h2>
     <div id="quizContainer"></div>
-    <button onclick="nextStage()" style="width:100%;">Almost there 💍</button>
+    <button onclick="nextStage()" style="width:100%; margin-top:30px;">Almost there 💍</button>
   </div>
 </div>
 
