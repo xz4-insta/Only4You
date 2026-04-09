@@ -250,6 +250,46 @@ style.textContent = `
     0%, 100% { opacity: 0.85; transform: translate(-50%, -50%) scale(1); }
     50% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
   }
+
+  #transitionOverlay .plane-icon {
+    position: absolute;
+    top: 50%;
+    left: -10%;
+    transform: translate(-50%, -50%) rotate(20deg);
+    font-size: 60px;
+    opacity: 0;
+    z-index: 10001;
+    pointer-events: none;
+    filter: drop-shadow(0 0 15px rgba(2, 136, 209, 0.6));
+  }
+
+  @keyframes planeSweep {
+    0% { left: -15%; top: 60%; transform: translate(-50%, -50%) rotate(45deg); opacity: 1; }
+    50% { left: 50%; top: 40%; transform: translate(-50%, -50%) rotate(0deg); opacity: 1; }
+    100% { left: 115%; top: 50%; transform: translate(-50%, -50%) rotate(20deg); opacity: 1; }
+  }
+
+  @keyframes wipeSweep {
+    0% { transform: translateX(-100%); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateX(100%); opacity: 0; }
+  }
+
+  #transitionOverlay.missyou-active::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.9), var(--glow-primary, #0288d1), transparent);
+    animation: wipeSweep 0.7s cubic-bezier(0.645, 0.045, 0.355, 1) forwards;
+    z-index: 10000;
+  }
+
+  #transitionOverlay.missyou-active .plane-icon {
+    animation: planeSweep 0.7s cubic-bezier(0.645, 0.045, 0.355, 1) forwards;
+  }
+
   
 
   /* ================= BEAUTIFUL FUTURISTIC TRANSITION ================= */
@@ -291,6 +331,16 @@ style.textContent = `
   #transitionOverlay.active::after {
     opacity: 1;
     transform: translate(-50%, -50%) scaleX(1) rotate(-15deg);
+  }
+
+  #transitionOverlay.missyou-active {
+    opacity: 1 !important;
+    backdrop-filter: blur(15px) !important;
+    -webkit-backdrop-filter: blur(15px) !important;
+  }
+  
+  #transitionOverlay.missyou-active::after {
+    display: none;
   }
 
   .stage {
@@ -571,20 +621,32 @@ function triggerTransition(callback) {
   if (!overlay) {
     overlay = document.createElement("div");
     overlay.id = "transitionOverlay";
+    overlay.innerHTML = '<div class="plane-icon">✈️</div>';
     document.body.appendChild(overlay);
   }
 
-  // Fade the overlay in
-  overlay.classList.add("active");
+  const template = window.storyData?.template || "";
 
-  // After a short flash, run the callback (stage switch happens here)
-  setTimeout(() => {
-    if (callback) callback();
-    // Fade back out quickly
+  if (template === "missyou") {
+    // Paper Plane Reveal logic
+    overlay.classList.add("missyou-active");
+    
     setTimeout(() => {
-      overlay.classList.remove("active");
-    }, 80);
-  }, 200);
+      if (callback) callback();
+      setTimeout(() => {
+        overlay.classList.remove("missyou-active");
+      }, 350);
+    }, 350);
+  } else {
+    // Classic Slash logic
+    overlay.classList.add("active");
+    setTimeout(() => {
+      if (callback) callback();
+      setTimeout(() => {
+        overlay.classList.remove("active");
+      }, 80);
+    }, 200);
+  }
 }
 
 
