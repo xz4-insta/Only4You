@@ -68,7 +68,7 @@ html, body, .main-wrapper {
 
 /* Card - Overriding engine shadows */
 .card {
-  background: rgba(255,255,255,0.7) !important;
+  background: rgba(255,255,255,0.73) !important;
   backdrop-filter: blur(25px) !important;
   border-radius: 40px !important;
   padding: 50px 30px !important;
@@ -82,6 +82,9 @@ html, body, .main-wrapper {
   transform-style: preserve-3d !important;
   border: 1px solid rgba(255,255,255,0.4) !important;
   z-index: 10 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
 }
 
 @keyframes fadeIn {
@@ -100,16 +103,18 @@ h2, h1 {
 /* ===== ENGINE COMPATIBLE OVERRIDE (REMOVE RED/PINK) ===== */
 .envelope {
   width: 220px !important;
-  height: 160px !important;
-  margin: 20px auto !important;
+  height: auto !important;
+  min-height: 150px !important;
+  margin: 10px auto !important;
   cursor: pointer !important;
   position: relative !important;
-  background: transparent !important; /* Forces red box to disappear */
+  background: transparent !important;
   box-shadow: none !important;
-  display: block !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
 }
 
-/* Hide the pink 'CLICK TO OPEN' pill from the engine */
 .envelope::after {
   content: none !important;
   display: none !important;
@@ -124,14 +129,15 @@ h2, h1 {
   z-index: 5;
 }
 
-/* Hide plane when engine adds .envelope-opened */
 .envelope.envelope-opened .plane-svg {
   opacity: 0;
   pointer-events: none;
+  height: 0;
+  margin-bottom: 0px;
 }
 
 .flap {
-  display: none !important; /* satisfy engine's requirement but don't show */
+  display: none !important; 
 }
 
 @keyframes planeWobble {
@@ -139,25 +145,31 @@ h2, h1 {
   50% { transform: translateY(-10px) rotate(5deg); }
 }
 
-/* LETTER - Overriding styling */
+/* LETTER - Corrected Alignment */
 #letterContent {
   display: none;
   background: white !important;
-  padding: 40px 30px !important;
+  padding: 30px !important;
   border-radius: 20px !important;
-  box-shadow: 0 10px 40px rgba(2,136,209,0.2) !important;
+  box-shadow: 0 10px 40px rgba(2,136,209,0.15) !important;
   font-family: 'Dancing Script', cursive !important;
-  font-size: 26px !important;
+  font-size: 24px !important;
   color: #01579b !important;
   line-height: 1.5 !important;
-  position: relative !important;
-  bottom: -40px; 
-  opacity: 0;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  margin-top: 10px !important;
+  margin-bottom: 20px !important;
+  animation: unfold 0.6s ease forwards !important;
 }
 
-.envelope.envelope-opened #letterContent {
+.envelope.envelope-opened + #letterContent {
   display: block !important;
-  opacity: 1 !important;
+}
+
+@keyframes unfold {
+  from { opacity: 0; transform: translateY(20px) scaleY(0.8); }
+  to { opacity: 1; transform: translateY(0) scaleY(1); }
 }
 
 /* ===== ENGINE COMPATIBLE LOVE METER ===== */
@@ -173,7 +185,8 @@ h2, h1 {
 }
 
 .meter-bar {
-  width: 300px;
+  width: 100%;
+  max-width: 300px;
   height: 18px;
   background: rgba(0,0,0,0.05);
   border-radius: 20px;
@@ -190,7 +203,7 @@ h2, h1 {
   transition: width .4s ease;
 }
 
-/* Dots */
+/* Progress Dots Fix */
 .dot.active {
   background: #0288d1 !important;
   box-shadow: 0 0 15px rgba(2,136,209,0.6) !important;
@@ -200,7 +213,7 @@ button {
   padding: 14px 40px !important;
   border: none !important;
   border-radius: 40px !important;
-  margin-top: 30px !important;
+  margin-top: 10px !important;
   font-size: 18px !important;
   font-weight: 600 !important;
   cursor: pointer !important;
@@ -220,18 +233,19 @@ button {
     <h2>A message for you... ☁️</h2>
     
     <div class="envelope" onclick="openLetter()">
-      <div class="flap"></div> <!-- Satisfies Engine -->
+      <div class="flap"></div> 
       <svg class="plane-svg" viewBox="0 0 512 512" fill="#0288d1">
         <path d="M512 64L0 256l192 64 64 192L512 64z"/>
         <path d="M192 320l256-192-256 128V320z" fill="#01579b"/>
       </svg>
-      <div id="letterContent">
-        <!-- Text typed by Engine -->
-      </div>
-      <div class="plane-label" style="font-size:12px; margin-top:20px; font-weight:700; color:#0288d1; opacity:0.7">TAP TO UNFOLD ✈️</div>
+      <div class="plane-label" style="font-size:12px; font-weight:700; color:#0288d1; opacity:0.7">TAP TO UNFOLD ✈️</div>
     </div>
 
-    <!-- Engine shows this button after openLetter is called -->
+    <!-- Letter Content OUTSIDE envelope for natural layout -->
+    <div id="letterContent">
+        <!-- Text typed by Engine -->
+    </div>
+
     <button onclick="nextStage()" style="display:none">Start Journey ➡</button>
   </div>
 </div>
@@ -256,11 +270,11 @@ button {
   <div class="card">
     <h2>Sweet Memories ☁️</h2>
     <div id="tvScreen" style="width:100%; height:320px; overflow:hidden; border-radius:30px; margin-top:20px;"></div>
-    <div style="margin-top:20px; display:flex; gap:10px; justify-content:center;">
-      <button onclick="prevMemory()" style="background:#e1f5fe; color:#0288d1;">⬅</button>
-      <button onclick="nextMemory()" style="background:#e1f5fe; color:#0288d1;">➡</button>
+    <div style="margin-top:20px; display:flex; gap:12px; justify-content:center;">
+      <button onclick="prevMemory()" style="background:#e1f5fe; color:#0288d1; padding:10px 25px !important;">⬅</button>
+      <button onclick="nextMemory()" style="background:#e1f5fe; color:#0288d1; padding:10px 25px !important;">➡</button>
     </div>
-    <button onclick="nextStage()" style="width:100%; margin-top:30px;">Continue 💙</button>
+    <button onclick="nextStage()" style="width:100%; margin-top:20px;">Continue 💙</button>
   </div>
 </div>
 
@@ -268,12 +282,11 @@ button {
 <div class="stage" id="stage4">
   <div class="card">
     <h2>Hear My Heart 🎧</h2>
-    <div id="voiceContainer"></div>
+    <div id="voiceContainer" style="width:100%;"></div>
     
-    <!-- Reaction Button Target (moved from Stage 1) -->
-    <div id="reactionTarget" style="margin-top: 30px;"></div>
+    <div id="reactionTarget" style="margin-top: 20px;"></div>
 
-    <button onclick="nextStage()" style="width:100%; margin-top:30px;">Continue 💙</button>
+    <button onclick="nextStage()" style="width:100%; margin-top:20px;">Continue 💙</button>
   </div>
 </div>
 
@@ -281,8 +294,8 @@ button {
 <div class="stage" id="stage5">
   <div class="card">
     <h2>Our Story ☁️</h2>
-    <div id="quizContainer"></div>
-    <button onclick="nextStage()" style="width:100%; margin-top:30px;">Almost there 💍</button>
+    <div id="quizContainer" style="width:100%;"></div>
+    <button onclick="nextStage()" style="width:100%;">Almost there 💍</button>
   </div>
 </div>
 
@@ -292,8 +305,8 @@ button {
     <h2 id="finalQuestion" style="font-size:40px;"></h2>
     <div style="font-size:80px; margin:20px 0;">✈️</div>
     <div style="display:flex; gap:15px; justify-content:center;">
-      <button onclick="celebrate()">YES 💙</button>
-      <button>NO 😅</button>
+      <button onclick="celebrate()" style="background:#0288d1 !important;">YES 💙</button>
+      <button style="background:#e3f2fd !important; color:#0288d1 !important; border:1px solid #0288d1 !important;">NO 😅</button>
     </div>
   </div>
 </div>
