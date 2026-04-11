@@ -340,8 +340,14 @@ applyPlanFeatures(plan,data,isOwner,id);
 if(plan!=="48"){
 
 const isMissYou = data.template === "missyou";
-const themeColor = isMissYou ? "#0288d1" : "#ff4d6d";
+const isEpic = data.template === "epic";
+const isSorry = data.template === "forgiveness";
+let themeColor = "#ff4d6d"; // Default pink
+if (isMissYou) themeColor = "#0288d1";
+if (isEpic) themeColor = "#6A0DAD";
+if (isSorry) themeColor = "#FFD700";
 const reactSection=document.createElement("div");
+
 reactSection.style.marginTop="40px";
 
 reactSection.innerHTML=`
@@ -350,15 +356,38 @@ style="padding:12px 25px;border:none;border-radius:30px;
 background:${themeColor};color:white;font-size:18px;cursor:pointer;">
 ❤️ ${isMissYou ? 'Send Love' : 'Send Love'}
 </button>
-<p id="reactionCount" style="color:${isMissYou ? '#0288d1' : '#ff4d6d'}; font-weight:bold;">${data.reactions||0} Loves</p>
+<p id="reactionCount" style="color:${themeColor}; font-weight:bold;">${data.reactions||0} Loves</p>
+
 `;
 
 const reactionTarget = document.getElementById("reactionTarget");
 if(reactionTarget){
+  reactSection.style.display = "none"; // Hide initially
   reactionTarget.appendChild(reactSection);
+  
+  // Show only when final stage is active
+  const observer = new MutationObserver(() => {
+    const finalStage = document.getElementById("stage6");
+    if(finalStage && finalStage.classList.contains("active")) {
+      reactSection.style.display = "block";
+      observer.disconnect();
+    }
+  });
+  observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['class'] });
 } else {
+  // If no target, hide by default and wait for stage6
+  reactSection.style.display = "none";
   wrapper.appendChild(reactSection);
+  const observer = new MutationObserver(() => {
+    const finalStage = document.getElementById("stage6");
+    if(finalStage && finalStage.classList.contains("active")) {
+      reactSection.style.display = "block";
+      observer.disconnect();
+    }
+  });
+  observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['class'] });
 }
+
 
 let reacted = false;
 const reactBtn = document.getElementById("reactBtn");
@@ -372,6 +401,7 @@ reactBtn.onclick = async () => {
   try {
     await updateDoc(ref, { reactions: increment(1) });
   } catch(e) {
+
     console.error("Reaction update failed:", e);
   }
 
@@ -380,8 +410,12 @@ reactBtn.onclick = async () => {
   for (let i = 0; i < 8; i++) {
     const heart = document.createElement("div");
     const template = window.currentTemplate;
-    const burstEmojis = template === "missyou" ? ["💙","☁️","✨","💎"] : ["💖","💕","🌸","✨"];
+    const burstEmojis = template === "missyou" ? ["💙","☁️","✨","💎"] : 
+                       template === "epic" ? ["💜","🔮","🎆","✨"] : 
+                       template === "forgiveness" ? ["🌻","💛","✨","🌞"] : 
+                       ["💖","💕","🌸","✨"];
     heart.innerHTML = burstEmojis[Math.floor(Math.random()*burstEmojis.length)];
+
     heart.style.cssText = `
       position: fixed;
       left: ${btnRect.left + btnRect.width/2 + (Math.random()*80-40)}px;
@@ -434,6 +468,9 @@ if(window.currentPlan==="299"){
     let symbols = ["✨","🌸","💖","🌺"];
     if (["valentine", "anniversary"].includes(t)) symbols = ["✨","🌹","💖","🌹"];
     if (t === "missyou") symbols = ["☁️","☁️","⛅","☁️"];
+    if (t === "epic") symbols = ["💜","🔮","🎆","🪁"];
+    if (t === "forgiveness") symbols = ["🌻","🌞","✨","🌻"];
+
 
     const randomSymbol=symbols[Math.floor(Math.random()*symbols.length)];
 

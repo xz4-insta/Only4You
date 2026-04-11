@@ -23,7 +23,11 @@ html, body, .main-wrapper {
   animation: skyMove 15s ease infinite !important;
   font-family: 'Poppins', sans-serif !important;
   color: #333 !important;
+  --glow-primary: #0288D1;
+  --glow-secondary: #B3E5FC;
+  --v-color: 2, 136, 209;
 }
+
 
 @keyframes skyMove {
   0% { background-position: 0% 50%; }
@@ -54,13 +58,18 @@ html, body, .main-wrapper {
   width: 100%;
   height: 100vh;
   z-index: 1000;
-  padding: 20px;
+  padding: 60px 20px;
   box-sizing: border-box;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   text-align: center;
   flex-direction: column;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
+
+
+
 
 .stage.active {
   display: flex;
@@ -79,8 +88,11 @@ html, body, .main-wrapper {
   position: relative !important;
   box-shadow: 0 15px 35px rgba(179,229,252,0.6) !important;
   animation: fadeIn 1.2s ease forwards !important;
-  transform-style: preserve-3d !important;
-  border: 1px solid rgba(255,255,255,0.4) !important;
+  transform-style: preserve-3d;
+  transition: transform 0.3s ease;
+  border: 1px solid rgba(2, 136, 209, 0.4);
+  margin: auto 0;
+  flex-shrink: 0;
   z-index: 10 !important;
   display: flex !important;
   flex-direction: column !important;
@@ -277,7 +289,7 @@ button:not(.quiz-opt) {
 <div class="stage" id="stage3">
   <div class="card">
     <h2>Sweet Memories ☁️</h2>
-    <div id="tvScreen" style="width:100%; height:320px; overflow:hidden; border-radius:30px; margin-top:20px;"></div>
+    <div id="tvScreen" style="width:100%; height:260px; overflow:hidden; border-radius:12px; background:rgba(0,0,0,0.05); margin-top:20px; border:1px solid rgba(2, 136, 209, 0.4);"></div>
     <div style="margin-top:20px; display:flex; gap:12px; justify-content:center;">
       <button onclick="prevMemory()" style="background:#e1f5fe; color:#0288d1; padding:10px 25px !important;">⬅</button>
       <button onclick="nextMemory()" style="background:#e1f5fe; color:#0288d1; padding:10px 25px !important;">➡</button>

@@ -48,7 +48,7 @@ style.textContent = `
     overflow-y: auto;
     padding-right: 10px;
     scrollbar-width: thin;
-    scrollbar-color: #ff4d6d rgba(255,255,255,0.1);
+    scrollbar-color: var(--glow-primary, #ff4d6d) rgba(255,255,255,0.1);
   }
   #quizContainer::-webkit-scrollbar {
     width: 6px;
@@ -57,7 +57,7 @@ style.textContent = `
     background: rgba(255,255,255,0.05);
   }
   #quizContainer::-webkit-scrollbar-thumb {
-    background-color: #ff4d6d;
+    background-color: var(--glow-primary, #ff4d6d);
     border-radius: 10px;
   }
   .stage-continue-btn {
@@ -66,19 +66,20 @@ style.textContent = `
     max-width: 300px;
     margin: 20px auto;
     padding: 12px 30px;
-    background: linear-gradient(90deg, #ff4d6d, #ff8fab);
+    background: linear-gradient(90deg, var(--glow-primary, #ff4d6d), var(--glow-secondary, #ff8fab));
     border: none;
     border-radius: 30px;
     color: white;
     font-weight: bold;
     cursor: pointer;
-    box-shadow: 0 10px 20px rgba(255,77,109,0.3);
+    box-shadow: 0 10px 20px rgba(var(--v-color, 255, 77, 109), 0.3);
     transition: 0.3s;
   }
   .stage-continue-btn:hover {
     transform: translateY(-3px);
-    box-shadow: 0 15px 30px rgba(255,77,109,0.5);
+    box-shadow: 0 15px 30px rgba(var(--v-color, 255, 77, 109), 0.5);
   }
+
   /* ================= PREMIUM GLASSMORPHISM ================= */
   .card, .envelope-wrapper, .modal-content {
     background: rgba(255, 255, 255, 0.4) !important;
@@ -106,11 +107,12 @@ style.textContent = `
     position: relative;
     width: 100%;
     height: 100%;
-    background: #ff4d6d;
+    background: var(--glow-primary, #ff4d6d);
     border-radius: 0 0 10px 10px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     transform-style: preserve-3d;
   }
+
   
   .envelope-flap {
     position: absolute;
@@ -120,7 +122,8 @@ style.textContent = `
     height: 0;
     border-left: 150px solid transparent;
     border-right: 150px solid transparent;
-    border-top: 100px solid #ff1a4d;
+    border-top: 100px solid var(--glow-primary, #ff1a4d);
+
     transform-origin: top;
     transition: 0.6s ease;
     z-index: 2;
@@ -222,24 +225,27 @@ style.textContent = `
   }
   
   .envelope::after {
-    content: "CLICK TO OPEN 💌";
+    content: attr(data-label);
     position: absolute;
     top: 60%; left: 50%;
     transform: translate(-50%, -50%);
     color: white;
     font-weight: bold;
     font-size: 14px;
-    letter-spacing: 1px;
+    letter-spacing: 1.1px;
     z-index: 3;
     pointer-events: none;
     text-shadow: 0 2px 4px rgba(0,0,0,0.4);
-    background: rgba(0,0,0,0.25);
-    padding: 8px 16px;
-    border-radius: 20px;
+    background: rgba(var(--v-color, 0,0,0), 0.4);
+    backdrop-filter: blur(5px);
+    padding: 10px 22px;
+    border-radius: 25px;
     white-space: nowrap;
     animation: pulseText 2s infinite;
     transition: opacity 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.2);
   }
+
   
   .envelope.envelope-opened::after {
     opacity: 0;
@@ -292,7 +298,7 @@ style.textContent = `
 
   
 
-  /* ================= BEAUTIFUL FUTURISTIC TRANSITION ================= */
+  /* ================= RADIANT SILK SWEEP TRANSITION ================= */
   #transitionOverlay {
     position: fixed;
     top: 0;
@@ -305,43 +311,51 @@ style.textContent = `
     backdrop-filter: blur(0px);
     -webkit-backdrop-filter: blur(0px);
     opacity: 0;
-    transition: opacity 0.4s ease, backdrop-filter 0.4s ease, -webkit-backdrop-filter 0.4s ease;
+    transition: opacity 0.6s ease, backdrop-filter 0.6s ease;
   }
 
   #transitionOverlay::after {
     content: '';
     position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%) scaleX(0) rotate(-15deg);
-    width: 150vw;
-    height: 6px;
-    background: #fff;
-    box-shadow: 0 0 40px 15px var(--glow-primary, #ff4d6d), 0 0 80px 30px var(--glow-secondary, #ff8fab);
-    border-radius: 50%;
+    top: -100%;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, 
+      transparent, 
+      var(--glow-primary, #ff4d6d), 
+      transparent
+    );
     opacity: 0;
-    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
+    transition: opacity 0.3s ease;
   }
   
   #transitionOverlay.active {
     opacity: 1;
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
   }
   
   #transitionOverlay.active::after {
-    opacity: 1;
-    transform: translate(-50%, -50%) scaleX(1) rotate(-15deg);
+    animation: silkSweepVertical 1.2s cubic-bezier(0.19, 1, 0.22, 1) forwards;
   }
 
+  @keyframes silkSweepVertical {
+    0% { top: -100%; opacity: 0; }
+    30% { opacity: 0.8; }
+    70% { opacity: 0.8; }
+    100% { top: 100%; opacity: 0; }
+  }
+
+    100% { left: 50%; opacity: 0; }
+  }
+
+  /* Keep plane for missyou but make it more natural within the overlay */
   #transitionOverlay.missyou-active {
     opacity: 1 !important;
     backdrop-filter: blur(15px) !important;
-    -webkit-backdrop-filter: blur(15px) !important;
   }
-  
-  #transitionOverlay.missyou-active::after {
-    display: none;
-  }
+
 
   .stage {
     animation: none;
@@ -452,17 +466,39 @@ export function initEpicInteractions(data){
   // Theme Detection
   const template = data.template || "";
   const root = document.documentElement;
+  let envLabel = "CLICK TO OPEN 💌";
   if (template === "missyou") {
     root.style.setProperty("--bokeh-color", "rgba(2, 136, 209, 0.3)");
     root.style.setProperty("--v-color", "2, 136, 209");
     root.style.setProperty("--glow-primary", "#0288d1");
     root.style.setProperty("--glow-secondary", "#26c6da");
+  } else if (template === "epic") {
+    root.style.setProperty("--bokeh-color", "rgba(106, 13, 173, 0.3)");
+    root.style.setProperty("--v-color", "106, 13, 173");
+    root.style.setProperty("--glow-primary", "#6A0DAD");
+    root.style.setProperty("--glow-secondary", "#9575CD");
+    envLabel = "CLICK TO OPEN 📩";
+  } else if (template === "forgiveness") {
+    root.style.setProperty("--bokeh-color", "rgba(255, 215, 0, 0.3)");
+    root.style.setProperty("--v-color", "255, 215, 0");
+    root.style.setProperty("--glow-primary", "#FFD700");
+    root.style.setProperty("--glow-secondary", "#FDB931");
+    envLabel = "CLICK TO OPEN ✉️";
+  } else if (template === "anniversary") {
+    root.style.setProperty("--bokeh-color", "rgba(128, 0, 0, 0.3)");
+    root.style.setProperty("--v-color", "128, 0, 0");
+    root.style.setProperty("--glow-primary", "#800000");
+    root.style.setProperty("--glow-secondary", "#A52A2A");
   } else {
     root.style.setProperty("--bokeh-color", "rgba(255, 105, 180, 0.3)");
     root.style.setProperty("--v-color", "231, 84, 128");
     root.style.setProperty("--glow-primary", "#ff4d6d");
     root.style.setProperty("--glow-secondary", "#ff8fab");
   }
+
+  const envEl = document.querySelector(".envelope");
+  if (envEl) envEl.setAttribute("data-label", envLabel);
+
 
   // Force full flow for carousel regardless of plan
   if (isPreview) {
@@ -825,6 +861,7 @@ to{opacity:1;transform:translateY(0)}
 }
 
 /* ADVANCED VOICE PLAYER */
+
 .voice-player {
   background: rgba(255, 255, 255, 0.08); 
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -931,6 +968,19 @@ to{opacity:1;transform:translateY(0)}
 }
 .stage-continue-btn {
   background: linear-gradient(90deg, var(--glow-primary, #ff4d6d), var(--glow-secondary, #ff8fab)) !important;
+  color: #fff !important;
+  padding: 14px 40px !important;
+  border: none !important;
+  border-radius: 30px !important;
+  font-weight: bold !important;
+  cursor: pointer !important;
+  font-size: 1rem !important;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.3) !important;
+  transition: all 0.3s ease !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  width: auto !important;
+  min-width: 200px !important;
 }
 .seek-bar::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -1207,8 +1257,14 @@ HEART PARTICLES
 
 function spawnHearts(){
   const template = window.storyData?.template || "";
-  let emoji = ["valentine", "anniversary"].includes(template) ? "🌹" : "💖";
+  let emoji = "💖";
   if (template === "missyou") emoji = "💙";
+  if (template === "epic") emoji = "💜";
+  if (template === "forgiveness") emoji = "🌻";
+  if (template === "anniversary") emoji = "🍷";
+  if (template === "birthday") emoji = "✨";
+
+
 
   // Optimization: Reduce spawn count on low-end
   const count = Optimization.isLowEnd ? 1 : 5;
@@ -1749,9 +1805,46 @@ function initScratch(data) {
   canvas.addEventListener("touchend", () => isDrawing = false);
 }
 
+function getThemeAssets(id) {
+  const assets = {
+    valentine: { 
+      name: "Catch the Love 💖", 
+      emoji: "💖", 
+      items: ["💖", "🍫", "💝", "🔥", "🌹"] 
+    },
+    missyou: { 
+      name: "Catch the Memories ☁️", 
+      emoji: "☁️", 
+      items: ["☁️", "💙", "✈️", "🌊", "🌙"] 
+    },
+    anniversary: { 
+      name: "Cheers to Forever 🥂", 
+      emoji: "🥂", 
+      items: ["🥂", "✨", "💍", "💛", "🍾"] 
+    },
+    birthday: { 
+      name: "Birthday Party 🎈", 
+      emoji: "🎈", 
+      items: ["🎈", "🎁", "🎂", "🎉", "🍰"] 
+    },
+    forgiveness: { 
+      name: "Heal the Heart 🩹", 
+      emoji: "🩹", 
+      items: ["🩹", "🕊️", "💛", "🕯️", "💐"] 
+    },
+    epic: { 
+      name: "The Grand Catch 💍", 
+      emoji: "💍", 
+      items: ["💍", "✨", "🎬", "🔥", "❤️"] 
+    }
+  };
+  return assets[id] || assets.valentine;
+}
+
 /* =========================================
-MINI-GAME: CATCH THE HEARTS (Stage 5.8 dynamic)
+MINI-GAME: CATCH THE THEME (Stage 5.8 dynamic)
 ========================================= */
+
 
 function initCatchGame(data) {
   if (data.plan !== "169" && data.plan !== "299") return;
@@ -1760,18 +1853,21 @@ function initCatchGame(data) {
   stage.className = "stage";
   stage.id = "stagecatchgame";
 
+  const theme = getThemeAssets(data.template || "valentine");
+
   stage.innerHTML = `
     <div class="card" style="min-height:350px; display:flex; flex-direction:column; justify-content:center; position:relative; overflow:hidden;">
-      <h2 style="margin-top:0;">Catch My Heart 💖</h2>
-      <p style="opacity:0.8; margin-bottom:10px;">Catch 10 falling hearts to unlock your final surprise!</p>
+      <h2 style="margin-top:0;">${theme.name}</h2>
+      <p style="opacity:0.8; margin-bottom:10px;">Catch 10 falling ${theme.emoji} to unlock your final surprise!</p>
       
-      <div id="catchArea" style="position:relative; width:100%; height:250px; border:2px dashed rgba(var(--v-color, 255,77,136), 0.5); border-radius:15px; overflow:hidden; background:rgba(255,255,255,0.02);">
+      <div id="catchArea" style="position:relative; width:100%; height:250px; border:2px dashed var(--glow-primary, rgba(255,77,136,0.5)); border-radius:15px; overflow:hidden; background:rgba(255,255,255,0.02);">
          <div id="catchScore" style="position:absolute; top:10px; right:15px; font-weight:bold; color:var(--glow-primary, #ff4d6d); font-size:18px; z-index:10; background:rgba(255,255,255,0.8); padding:5px 10px; border-radius:10px;">0 / 10</div>
       </div>
 
       <button id="catchNextBtn" class="btn" onclick="nextStage()" style="display:none; width:100%; margin-top:20px;">Proceed to Finale ✨</button>
     </div>
   `;
+
 
   document.body.appendChild(stage);
 
@@ -1820,11 +1916,10 @@ function initCatchGame(data) {
         `;
         
         const emoji = document.createElement("span");
-        const template = window.storyData?.template || "";
-        const heartEmojis = template === "missyou" ? ["💙", "🩵", "✨", "💎", "❄️"] : ["💖", "💗", "💕", "💞", "💘"];
-        emoji.innerHTML = isHeartbreak ? "💔" : heartEmojis[Math.floor(Math.random()*heartEmojis.length)];
+        emoji.innerHTML = isHeartbreak ? "💔" : theme.items[Math.floor(Math.random() * theme.items.length)];
         emoji.style.fontSize = "32px";
         heartContainer.appendChild(emoji);
+
         
         const tapHandler = (e) => {
           e.preventDefault();
@@ -2191,8 +2286,10 @@ function initQuiz(data){
   const submitBtn = document.createElement("button");
   submitBtn.type = "button";
   submitBtn.className = "stage-continue-btn";
-  submitBtn.innerText = "Submit Quiz 📝";
-  submitBtn.style.marginTop = "20px";
+  submitBtn.innerText = "Check Results ➡";
+  submitBtn.style.marginTop = "30px";
+  submitBtn.style.marginBottom = "40px";
+
   
   submitBtn.onclick = () => {
     const answeredCount = Object.keys(quizAnswers).length;
