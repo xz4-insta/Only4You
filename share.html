@@ -480,12 +480,14 @@ if (id) {
     // Auto-sync social preview QR image if it doesn't exist
     if (!data.qrImage && !window.previewSyncTriggered) {
       window.previewSyncTriggered = true;
+      showToast("Syncing social preview... ⏳");
       setTimeout(() => {
         buildShareCanvas(data).then(canvas => {
           syncSocialPreview(id, canvas);
         });
       }, 2000); // Give a small delay to ensure rendering is complete
     }
+
 
 
 
@@ -671,16 +673,20 @@ async function syncSocialPreview(id, canvas) {
   }
 }
 
-async function getBlob() {
-  const c = await buildShareCanvas();
+async function getBlob(data) {
+  const c = await buildShareCanvas(data);
   return new Promise(res => c.toBlob(res, "image/png", 1.0));
 }
+
 
 // ── Copy Image ───────────────────────────────────────────
 document.getElementById("copyQR").onclick = async () => {
   showToast("Generating image... ⏳");
   try {
-    const blob = await getBlob();
+    const snap = await getDoc(doc(db, "surprises", id));
+    const data = snap.data();
+    const blob = await getBlob(data);
+
     await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
     showToast("Image copied! Paste anywhere 💖");
   } catch {
