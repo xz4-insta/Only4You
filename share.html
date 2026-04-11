@@ -481,11 +481,12 @@ if (id) {
     if (!data.qrImage && !window.previewSyncTriggered) {
       window.previewSyncTriggered = true;
       setTimeout(() => {
-        buildShareCanvas().then(canvas => {
+        buildShareCanvas(data).then(canvas => {
           syncSocialPreview(id, canvas);
         });
       }, 2000); // Give a small delay to ensure rendering is complete
     }
+
 
 
     if (data.quiz && data.quiz.length > 0) {
@@ -519,7 +520,8 @@ hideLoader();
 
 // ── Build composite shareable image ──────────────────────
 // Generates the large high-res Heart QR image
-async function buildShareCanvas() {
+async function buildShareCanvas(data) {
+
   const size = 1200; // High res for sharing
   const canvas = document.createElement("canvas");
   canvas.width = size;
